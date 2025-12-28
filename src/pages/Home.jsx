@@ -1,7 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence, useAnimation, useInView } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useAnimation,
+  useInView,
+} from "framer-motion";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import NavBar from "../components/Navbar";
+import { FiPhoneCall } from "react-icons/fi";
 
 // Import images
 import home_image from "../assets/home-image.jpg";
@@ -10,6 +16,7 @@ import birthdayImg from "../assets/4x4-prev.jpg";
 import outdoorImg from "../assets/4x4-prev.jpg";
 import productImg from "../assets/4x4-prev.jpg";
 import defaultImg from "../assets/4x4-prev.jpg";
+import Footer from "../components/Footer";
 
 const galleryImages = [
   weddingImg,
@@ -36,7 +43,12 @@ function ScrollAnimatedContent({ children, delay = 0 }) {
   };
 
   return (
-    <motion.div ref={ref} initial="hidden" animate={controls} variants={variants}>
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={controls}
+      variants={variants}
+    >
       {children}
     </motion.div>
   );
@@ -82,37 +94,67 @@ function Home() {
           {/* LEFT SIDE */}
           <div className="flex-1 bg-[#141414] flex flex-col justify-center md:justify-end p-6 sm:p-8 md:p-12 lg:p-16 py-12 md:py-16">
             <ScrollAnimatedContent delay={0.2}>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mb-2 mt-10 md:mt-4" style={{ color: "#E6C2A1" }}>
+              <h1
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mb-2 mt-10 md:mt-4"
+                style={{ color: "#E6C2A1" }}
+              >
                 Inekas Photography
               </h1>
               <div className="w-16 md:w-20 h-1 bg-[#E6C2A1] mb-4 md:mb-6 rounded"></div>
             </ScrollAnimatedContent>
 
             <ScrollAnimatedContent delay={0.4}>
-              <h2 className="text-lg sm:text-xl md:text-2xl font-medium mb-4 md:mb-6" style={{ color: "#E6C2A1" , fontFamily: 'Lora'}}>
+              <h2
+                className="text-lg sm:text-xl md:text-2xl font-medium mb-4 md:mb-6"
+                style={{ color: "#E6C2A1", fontFamily: "Lora" }}
+              >
                 The way light brings objects to life
               </h2>
             </ScrollAnimatedContent>
 
             <ScrollAnimatedContent delay={0.6}>
-              <p className="text-sm sm:text-base text-[#D4D4D4] max-w-md mb-6 md:mb-8">From newborns and family portraits to events, products, and creative projects, our studio captures life’s moments with precision, creativity, and heart—turning them into memories you’ll cherish forever.</p>
+              <p className="text-sm sm:text-base text-[#D4D4D4] max-w-md mb-6 md:mb-8">
+                From newborns and family portraits to events, products, and
+                creative projects, our studio captures life’s moments with
+                precision, creativity, and heart—turning them into memories
+                you’ll cherish forever.
+              </p>
             </ScrollAnimatedContent>
 
             <ScrollAnimatedContent delay={0.8}>
               <div className="flex gap-4">
-                <button className="bg-[#E6C2A1] text-white font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg shadow-lg hover:bg-[#d4ac88] transition text-sm md:text-base">
+                {/* CALL US BUTTON */}
+                <motion.a
+                  href="tel:+971XXXXXXXXX" 
+                  whileHover={{ x: 6 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                  className="flex items-center gap-2 bg-[#E6C2A1] text-black font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg shadow-lg hover:bg-transparent hover:text-[#E6C2A1] hover:border-2 hover:border-[#E6C2A1] transition text-sm md:text-base"
+                >
+                  <FiPhoneCall className="text-lg" />
                   Call Us
-                </button>
-                <button className="bg-transparent border-2 border-[#E6C2A1] text-[#E6C2A1] font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg hover:bg-[#E6C2A1] hover:text-white transition text-sm md:text-base">
+                </motion.a>
+
+                {/* PACKAGES BUTTON */}
+                <motion.button
+                  whileHover={{ x: 6 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                  className="bg-transparent border-2 border-[#E6C2A1] text-[#E6C2A1] font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg hover:bg-[#E6C2A1] hover:text-black transition text-sm md:text-base"
+                >
                   Packages
-                </button>
+                </motion.button>
               </div>
             </ScrollAnimatedContent>
           </div>
 
           {/* RIGHT SIDE IMAGE */}
           <div className="flex-1 relative h-64 sm:h-80 md:h-auto min-h-[300px] md:min-h-screen">
-            <img src={home_image} alt="Hero" className="h-full w-full object-cover" />
+            <img
+              src={home_image}
+              alt="Hero"
+              className="h-full w-full object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/100"></div>
           </div>
         </div>
@@ -129,11 +171,16 @@ function Home() {
             <div className="service-heading flex flex-col md:flex-row justify-between gap-4 md:gap-6">
               <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-0">
                 <div className="w-12 md:w-20 h-1 bg-[#E6C2A1] rounded"></div>
-                <h2 className="text-2xl sm:text-3xl text-[#E6C2A1] font-bold">Capture Your Moments with Affordable Elegance</h2>
+                <h2 className="text-2xl sm:text-3xl text-[#E6C2A1] font-bold">
+                  Capture Your Moments with Affordable Elegance
+                </h2>
               </div>
               <div className="text-gray-300 max-w-xl text-sm sm:text-base">
                 <p>
-                  At Inekas, we believe that the best results come from true creative collaboration. Our diverse perspectives make our work stronger, allowing us to offer you premium photoshoots at a perfectly affordable price.
+                  At Inekas, we believe that the best results come from true
+                  creative collaboration. Our diverse perspectives make our work
+                  stronger, allowing us to offer you premium photoshoots at a
+                  perfectly affordable price.
                 </p>
               </div>
             </div>
@@ -155,7 +202,11 @@ function Home() {
 
                 const itemVariants = {
                   hidden: { opacity: 0, y: 30 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: index * 0.2 } },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.5, delay: index * 0.2 },
+                  },
                 };
 
                 return (
@@ -177,7 +228,11 @@ function Home() {
                         {service.title}
                       </h3>
                       <span className="text-white text-xl md:text-2xl">
-                        {activeIndex === index ? <FiChevronUp /> : <FiChevronDown />}
+                        {activeIndex === index ? (
+                          <FiChevronUp />
+                        ) : (
+                          <FiChevronDown />
+                        )}
                       </span>
                     </div>
 
@@ -191,7 +246,7 @@ function Home() {
                           className="mt-3 md:mt-4 text-xs sm:text-sm text-[#D4D4D4]"
                         >
                           <p className="mb-3 md:mb-4">{service.description}</p>
-                          <button className="bg-[#E6C2A1] text-black font-semibold px-3 py-1.5 md:px-4 md:py-2 text-white rounded-lg hover:bg-[#d6ad8a] transition text-xs sm:text-sm">
+                          <button className="bg-[#E6C2A1] text-black font-semibold px-3 py-1.5 md:px-4 md:py-2 text-[#E6C2A1] rounded-lg hover:bg-[#d6ad8a] transition text-xs sm:text-sm">
                             View Details
                           </button>
                         </motion.div>
@@ -207,7 +262,11 @@ function Home() {
               <AnimatePresence mode="wait">
                 <motion.img
                   key={activeIndex}
-                  src={activeIndex !== null ? services[activeIndex].image : defaultImg}
+                  src={
+                    activeIndex !== null
+                      ? services[activeIndex].image
+                      : defaultImg
+                  }
                   alt="Preview"
                   className="rounded-xl shadow-lg w-full object-cover h-[250px] sm:h-[300px] md:h-[400px]"
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -230,7 +289,10 @@ function Home() {
                 Creative Newborn Photography Themes
               </h2>
               <p className="text-sm sm:text-base text-[#D4D4D4] max-w-3xl mx-auto">
-                Explore a diverse selection of creative themes and distinctive add-ons for newborn photography. Each theme is crafted by independent artists, designed to enhance your photos and make them truly memorable.
+                Explore a diverse selection of creative themes and distinctive
+                add-ons for newborn photography. Each theme is crafted by
+                independent artists, designed to enhance your photos and make
+                them truly memorable.
               </p>
             </div>
           </ScrollAnimatedContent>
@@ -238,27 +300,64 @@ function Home() {
           {/* Themes Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {[
-              { title: "Diamond", description: "Comprehensive Newborn photography packages tailored to your needs.", image: weddingImg },
-              { title: "Star", description: "Maternity photography packages designed with your convenience in mind.", image: birthdayImg },
-              { title: "Sunflower", description: "Flexible Cake Smash photography packages for your perfect moment.", image: outdoorImg },
-              { title: "Sky", description: "Custom Kids Portrait packages to suit every style and need.", image: productImg }
+              {
+                title: "Diamond",
+                description:
+                  "Comprehensive Newborn photography packages tailored to your needs.",
+                image: weddingImg,
+              },
+              {
+                title: "Star",
+                description:
+                  "Maternity photography packages designed with your convenience in mind.",
+                image: birthdayImg,
+              },
+              {
+                title: "Sunflower",
+                description:
+                  "Flexible Cake Smash photography packages for your perfect moment.",
+                image: outdoorImg,
+              },
+              {
+                title: "Sky",
+                description:
+                  "Custom Kids Portrait packages to suit every style and need.",
+                image: productImg,
+              },
             ].map((theme, index) => (
               <ScrollAnimatedContent key={index} delay={0.2 + index * 0.1}>
-                <div className="bg-[#1a1a1a] rounded-lg overflow-hidden hover:transform hover:scale-105 transition-all duration-300">
-                  <img src={theme.image} alt={theme.title} className="w-full h-48 object-cover" />
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-[#E6C2A1] mb-2">{theme.title}</h3>
-                    <p className="text-xs sm:text-sm text-[#D4D4D4]">{theme.description}</p>
+                <div className="bg-[#1a1a1a] rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 h-full flex flex-col">
+                  {/* Image */}
+                  <img
+                    src={theme.image}
+                    alt={theme.title}
+                    className="w-full h-48 object-cover"
+                  />
+
+                  {/* Content */}
+                  <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="text-lg font-semibold text-[#E6C2A1] mb-2">
+                      {theme.title}
+                    </h3>
+
+                    <p className="text-xs sm:text-sm text-[#D4D4D4] flex-grow">
+                      {theme.description}
+                    </p>
                   </div>
                 </div>
               </ScrollAnimatedContent>
             ))}
           </div>
 
+          {/* CTA Button */}
           <ScrollAnimatedContent delay={0.8}>
             <div className="text-center mt-8 md:mt-12">
-              <button className="bg-[#E6C2A1] text-white font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg shadow-lg hover:bg-[#d4ac88] transition text-sm md:text-base">
-                Book Now
+              <button className="relative overflow-hidden bg-[#E6C2A1] text-black font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg shadow-lg text-sm md:text-base group">
+                {/* Sliding hover layer */}
+                <span className="absolute inset-0 bg-[#d4ac88] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300 ease-out"></span>
+
+                {/* Button text */}
+                <span className="relative z-10">Book Now</span>
               </button>
             </div>
           </ScrollAnimatedContent>
@@ -266,75 +365,76 @@ function Home() {
       </div>
 
       {/* GALLERY SECTION */}
-<div className="w-full bg-[#141414] py-14 sm:py-18 md:py-24 overflow-hidden">
-  <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
+      <div className="w-full bg-[#141414] py-14 sm:py-18 md:py-24 overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
+          {/* Title */}
+          <div className="mb-12">
+            <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6">
+              {/* Left: Title */}
+              <h2 className="text-2xl sm:text-3xl md:text-4xl text-[#E6C2A1] font-bold whitespace-nowrap">
+                Gallery
+              </h2>
 
-    {/* Title */}
-    <div className="mb-12">
-  <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6">
+              {/* Middle: Line */}
+              <div className="flex-1 h-[2px] bg-gradient-to-r from-[#E6C2A1] via-[#E6C2A1]/60 to-transparent rounded" />
 
-    {/* Left: Title */}
-    <h2 className="text-2xl sm:text-3xl md:text-4xl text-[#E6C2A1] font-bold whitespace-nowrap">
-      Gallery
-    </h2>
+              {/* Right: Description */}
+              <p className="text-sm sm:text-base text-gray-400 max-w-xs text-center md:text-right">
+                A glimpse of moments captured with passion, precision, and
+                timeless storytelling.
+              </p>
+            </div>
+          </div>
 
-    {/* Middle: Line */}
-    <div className="flex-1 h-[2px] bg-gradient-to-r from-[#E6C2A1] via-[#E6C2A1]/60 to-transparent rounded" />
+          {/* Crawler Wrapper */}
+          <div className="relative border border-[#2a2a2a] rounded-2xl overflow-hidden bg-black/30 backdrop-blur-sm">
+            {/* Left Gradient */}
+            <div
+              className="pointer-events-none absolute left-0 top-0 h-full w-20 sm:w-28 md:w-36 
+        bg-gradient-to-r from-black via-black/10 to-transparent z-10"
+            />
 
-    {/* Right: Description */}
-    <p className="text-sm sm:text-base text-gray-400 max-w-xs text-center md:text-right">
-      A glimpse of moments captured with passion, precision, and timeless storytelling.
-    </p>
+            {/* Right Gradient */}
+            <div
+              className="pointer-events-none absolute right-0 top-0 h-full w-20 sm:w-28 md:w-36 
+        bg-gradient-to-l from-black via-black/10 to-transparent z-10"
+            />
 
-  </div>
-</div>
+            {/* Bottom Gradient */}
+            <div
+              className="pointer-events-none absolute bottom-0 left-0 w-full h-32 
+        bg-gradient-to-t from-black via-black/30 to-transparent z-10"
+            />
 
-
-    {/* 🔲 Crawler Wrapper */}
-    <div className="relative border border-[#2a2a2a] rounded-2xl overflow-hidden bg-black/40 backdrop-blur-sm">
-
-      {/* Left Gradient */}
-      <div className="pointer-events-none absolute left-0 top-0 h-full w-20 sm:w-28 md:w-36 
-        bg-gradient-to-r from-black via-black/80 to-transparent z-10" />
-
-      {/* Right Gradient */}
-      <div className="pointer-events-none absolute right-0 top-0 h-full w-20 sm:w-28 md:w-36 
-        bg-gradient-to-l from-black via-black/80 to-transparent z-10" />
-
-      {/* Bottom Gradient */}
-      <div className="pointer-events-none absolute bottom-0 left-0 w-full h-32 
-        bg-gradient-to-t from-black via-black/70 to-transparent z-10" />
-
-      {/* 🖼️ Crawler */}
-      <motion.div
-        className="flex gap-6 px-6 py-10"
-        animate={{ x: ["0%", "-100%"] }}
-        transition={{
-          repeat: Infinity,
-          ease: "linear",
-          duration: 38,
-        }}
-      >
-        {[...galleryImages, ...galleryImages].map((img, index) => (
-          <div
-            key={index}
-            className="min-w-[240px] sm:min-w-[280px] md:min-w-[320px]
+            {/* Crawler */}
+            <motion.div
+              className="flex gap-6 px-6 py-20"
+              animate={{ x: ["0%", "-100%"] }}
+              transition={{
+                repeat: Infinity,
+                ease: "linear",
+                duration: 38,
+              }}
+            >
+              {[...galleryImages, ...galleryImages].map((img, index) => (
+                <div
+                  key={index}
+                  className="min-w-[240px] sm:min-w-[280px] md:min-w-[320px]
                        h-[240px] sm:h-[280px] md:h-[320px]
                        overflow-hidden rounded-xl shadow-lg"
-          >
-            <img
-              src={img}
-              alt={`Gallery ${index + 1}`}
-              className="w-full h-full object-cover
+                >
+                  <img
+                    src={img}
+                    alt={`Gallery ${index + 1}`}
+                    className="w-full h-full object-cover
                          transition-transform duration-700 hover:scale-110"
-            />
+                  />
+                </div>
+              ))}
+            </motion.div>
           </div>
-        ))}
-      </motion.div>
-    </div>
-
-  </div>
-</div>
+        </div>
+      </div>
 
       {/* MOTHERHOOD JOURNEY SECTION */}
       <div className="w-full bg-[#0f0f0f] py-12 sm:py-16 md:py-20">
@@ -358,7 +458,12 @@ function Home() {
                   The Heartfelt Journey of Becoming a Mother
                 </h2>
                 <p className="text-sm sm:text-base text-[#D4D4D4] mb-6 md:mb-8">
-                  Being a mother is one of life's most extraordinary experiences. At INEKAS, we are dedicated to capturing these cherished moments with the artistry and passion of our talented creative team. This version enhances flow and emphasizes the uniqueness of the experience and the team's commitment.
+                  Being a mother is one of life's most extraordinary
+                  experiences. At INEKAS, we are dedicated to capturing these
+                  cherished moments with the artistry and passion of our
+                  talented creative team. This version enhances flow and
+                  emphasizes the uniqueness of the experience and the team's
+                  commitment.
                 </p>
                 <button className="bg-[#E6C2A1] text-white font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg shadow-lg hover:bg-[#d4ac88] transition text-sm md:text-base">
                   Book Now
@@ -390,6 +495,7 @@ function Home() {
           </ScrollAnimatedContent>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

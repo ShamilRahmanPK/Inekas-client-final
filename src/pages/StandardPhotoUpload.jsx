@@ -265,7 +265,7 @@ const handleNext = () => {
 
   // Create an array of data to pass
   const imagesData = uploadedImages.map((img) => ({
-    file: img.croppedFile || img.file, // actual file
+    file: img.croppedFile || img.file, 
     size: img.size,
     paper: img.paper,
     quantity: img.quantity,
@@ -756,7 +756,7 @@ const handleNext = () => {
                 {/* Close button */}
                 <MdClose
                   onClick={closeEditor}
-                  className="flexjustify-end w-6 h-6 my-2 mx-2"
+                  className="flexjustify-end w-6 h-6 my-2 mx-2 hover:text-red-700 transition-colors cursor-pointer"
                 />
               </div>
 
@@ -798,7 +798,7 @@ const handleNext = () => {
                 {/* Rotate Button */}
                 <button
                   onClick={() => setRotation((r) => (r + 90) % 360)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-white transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-black hover:bg-gray-800 text-gray-700 rounded-lg font-medium text-white transition-colors flex items-center gap-2"
                 >
                   <MdRotate90DegreesCw className="w-5 h-5" />
                   Rotate 90°
@@ -808,14 +808,14 @@ const handleNext = () => {
                 <div className="flex gap-3">
                   <button
                     onClick={closeEditor}
-                    className="px-6 py-2 bg-white hover:bg-gray-50 text-red-700 border border-gray-300 rounded-lg font-medium transition-colors"
+                    className="px-6 py-2 bg-white hover:bg-red-100 text-red-700 border border-gray-300 rounded-lg font-medium transition-colors"
                   >
                     Cancel
                   </button>
 
                   <button
                     onClick={applyCrop}
-                    className="px-6 py-2 bg-black hover:bg-gray-800 text-green-700 rounded-lg font-medium transition-colors"
+                    className="px-6 py-2 bg-white border border-gray-300 hover:bg-green-100 text-green-700 rounded-lg font-medium transition-colors"
                   >
                     Apply
                   </button>

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import StripePayment from "../components/StripePayment";
+import { addStandardPrintApi } from "../services/allAPI";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -72,25 +73,25 @@ export default function Checkout() {
 
   const [imagesWithPreview, setImagesWithPreview] = useState([]);
   useEffect(() => {
-  const mapped = uploadedImages.map((img) => ({
-    ...img,
-    preview: img.croppedFile
-      ? URL.createObjectURL(img.croppedFile)
-      : URL.createObjectURL(img.file),
-  }));
-  setImagesWithPreview(mapped);
+    const mapped = uploadedImages.map((img) => ({
+      ...img,
+      preview: img.croppedFile
+        ? URL.createObjectURL(img.croppedFile)
+        : URL.createObjectURL(img.file),
+    }));
+    setImagesWithPreview(mapped);
 
-  // Cleanup object URLs when component unmounts
-  return () => {
-    mapped.forEach((img) => URL.revokeObjectURL(img.preview));
-  };
-}, [uploadedImages]);
-
+    // Cleanup object URLs when component unmounts
+    return () => {
+      mapped.forEach((img) => URL.revokeObjectURL(img.preview));
+    };
+  }, [uploadedImages]);
 
   // Form validation
   const validateForm = () => {
     const errors = {};
-    if (!deliveryAddress.fullName.trim()) errors.fullName = "Full name is required";
+    if (!deliveryAddress.fullName.trim())
+      errors.fullName = "Full name is required";
     if (!deliveryAddress.phoneNumber.trim()) {
       errors.phoneNumber = "Phone number is required";
     } else if (!/^\+?[\d\s-()]+$/.test(deliveryAddress.phoneNumber)) {
@@ -101,10 +102,13 @@ export default function Checkout() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(deliveryAddress.email)) {
       errors.email = "Invalid email format";
     }
-    if (!deliveryAddress.addressLine1.trim()) errors.addressLine1 = "Address is required";
+    if (!deliveryAddress.addressLine1.trim())
+      errors.addressLine1 = "Address is required";
     if (!deliveryAddress.city.trim()) errors.city = "City is required";
-    if (!deliveryAddress.state.trim()) errors.state = "State/Province is required";
-    if (!deliveryAddress.zipCode.trim()) errors.zipCode = "ZIP/Postal code is required";
+    if (!deliveryAddress.state.trim())
+      errors.state = "State/Province is required";
+    if (!deliveryAddress.zipCode.trim())
+      errors.zipCode = "ZIP/Postal code is required";
     if (!deliveryAddress.country.trim()) errors.country = "Country is required";
 
     setFormErrors(errors);
@@ -133,7 +137,8 @@ export default function Checkout() {
       const discountRate = validPromoCodes[promoCodeInput.toUpperCase()];
       if (discountRate) {
         const discount = currentTotals.subtotal * discountRate;
-        const newTotal = currentTotals.subtotal + currentTotals.deliveryCharge - discount;
+        const newTotal =
+          currentTotals.subtotal + currentTotals.deliveryCharge - discount;
         setCurrentTotals({ ...currentTotals, discount, total: newTotal });
         setPromoApplied(true);
         setTimeout(() => setPromoApplied(false), 3000);
@@ -148,140 +153,117 @@ export default function Checkout() {
   };
 
   const handlePlaceOrder = async () => {
-  if (!validateForm()) return;
+    if (!validateForm()) return;
 
-  setIsSubmitting(true);
+    setIsSubmitting(true);
 
-  try {
+    try {
+      const formData = new FormData();
+
+      // Images
+      // -----------------------
+      uploadedImages.forEach((img, index) => {
+        formData.append("images", img.croppedFile || img.file);
+        formData.append(`items[${index}][size]`, img.size);
+        formData.append(`items[${index}][paper]`, img.paper);
+        formData.append(`items[${index}][quantity]`, img.quantity);
+        formData.append(`items[${index}][cropped]`, img.cropped);
+
+        if (img.cropData) {
+          formData.append(
+            `items[${index}][cropData]`,
+            JSON.stringify(img.cropData)
+          );
+        }
+      });
+
+      // Address
+      // -----------------------
+      Object.entries(deliveryAddress).forEach(([key, value]) => {
+        formData.append(`deliveryAddress[${key}]`, value);
+      });
+
+      // Pricing
+      // -----------------------
+      formData.append("pricing[subtotal]", currentTotals.subtotal);
+      formData.append("pricing[discount]", currentTotals.discount);
+      formData.append("pricing[deliveryCharge]", currentTotals.deliveryCharge);
+      formData.append("pricing[total]", currentTotals.total);
+
+      // Payment
+      // -----------------------
+      formData.append("paymentMethod", paymentMethod);
+      formData.append("promoCode", promoCodeInput);
+
+      console.log("=== CHECKOUT FORM DATA ===");
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
+      console.log("Uploaded Images:", uploadedImages);
+      console.log("Delivery Address:", deliveryAddress);
+      console.log("Pricing:", currentTotals);
+      console.log("Payment Method:", paymentMethod);
+      console.log("Promo Code:", promoCodeInput);
+
+      // api call
+      const res = await addStandardPrintApi(formData);
+
+      if (res.status !== 200 && res.status !== 201) {
+        throw new Error("Order failed");
+      }
+
+      console.log("Order saved:", res.data);
+
+      alert("Order placed successfully!");
+      navigate("/");
+    } catch (error) {
+      console.error("Checkout error:", error);
+      alert("Failed to place order");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getPricePerImage = (size, paper) => {
+    let price = 5;
+    if (size === "10x15") price = 5;
+    else if (size === "13x18") price = 8;
+    else if (size === "15x21") price = 10;
+    else if (size === "20x25") price = 15;
+    else if (size === "20x30") price = 18;
+
+    if (paper === "Glossy") price += 2;
+    return price;
+  };
+
+  // Handle card payment success
+  const handlePaymentSuccess = async (paymentData) => {
     const formData = new FormData();
 
-    // -----------------------
-    // Images
-    // -----------------------
     uploadedImages.forEach((img, index) => {
-      formData.append("images", img.croppedFile || img.file); // FILE
+      formData.append("images", img.croppedFile || img.file);
       formData.append(`items[${index}][size]`, img.size);
       formData.append(`items[${index}][paper]`, img.paper);
       formData.append(`items[${index}][quantity]`, img.quantity);
-      formData.append(`items[${index}][cropped]`, img.cropped);
-
-      if (img.cropData) {
-        formData.append(
-          `items[${index}][cropData]`,
-          JSON.stringify(img.cropData)
-        );
-      }
     });
 
-    // -----------------------
-    // Address
-    // -----------------------
     Object.entries(deliveryAddress).forEach(([key, value]) => {
       formData.append(`deliveryAddress[${key}]`, value);
     });
 
-    // -----------------------
-    // Pricing
-    // -----------------------
-    formData.append("pricing[subtotal]", currentTotals.subtotal);
-    formData.append("pricing[discount]", currentTotals.discount);
-    formData.append("pricing[deliveryCharge]", currentTotals.deliveryCharge);
-    formData.append("pricing[total]", currentTotals.total);
-
-    // -----------------------
-    // Payment
-    // -----------------------
-    formData.append("paymentMethod", paymentMethod);
+    formData.append("paymentMethod", "card_payment");
+    formData.append("paymentId", paymentData.paymentId);
     formData.append("promoCode", promoCodeInput);
 
-    // -----------------------
-    // DEBUG LOG (VERY IMPORTANT)
-    // -----------------------
-    console.log("=== CHECKOUT FORM DATA ===");
-    for (let pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
-
-    console.log("========== PLACE ORDER CLICKED ==========");
-
-console.log("Uploaded Images:", uploadedImages);
-
-console.log("Delivery Address:", deliveryAddress);
-
-console.log("Pricing:", currentTotals);
-
-console.log("Payment Method:", paymentMethod);
-
-console.log("Promo Code:", promoCodeInput);
-
-
-    // -----------------------
-    // API CALL
-    // -----------------------
     const res = await fetch("http://localhost:5000/api/orders", {
       method: "POST",
-      body: formData, // ❗ NO headers
+      body: formData,
     });
 
-    if (!res.ok) throw new Error("Order failed");
-
-    const data = await res.json();
-    console.log("Order saved:", data);
-
-    alert("Order placed successfully!");
+    alert("Payment successful!");
     navigate("/");
-
-  } catch (error) {
-    console.error("Checkout error:", error);
-    alert("Failed to place order");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
-
-  // Add this inside your Checkout component (before return)
-const getPricePerImage = (size, paper) => {
-  let price = 5;
-  if (size === "10x15") price = 5;
-  else if (size === "13x18") price = 8;
-  else if (size === "15x21") price = 10;
-  else if (size === "20x25") price = 15;
-  else if (size === "20x30") price = 18;
-
-  if (paper === "Glossy") price += 2;
-  return price;
-};
-
-
-  // Handle card payment success
-  const handlePaymentSuccess = async (paymentData) => {
-  const formData = new FormData();
-
-  uploadedImages.forEach((img, index) => {
-    formData.append("images", img.croppedFile || img.file);
-    formData.append(`items[${index}][size]`, img.size);
-    formData.append(`items[${index}][paper]`, img.paper);
-    formData.append(`items[${index}][quantity]`, img.quantity);
-  });
-
-  Object.entries(deliveryAddress).forEach(([key, value]) => {
-    formData.append(`deliveryAddress[${key}]`, value);
-  });
-
-  formData.append("paymentMethod", "card_payment");
-  formData.append("paymentId", paymentData.paymentId);
-  formData.append("promoCode", promoCodeInput);
-
-  const res = await fetch("http://localhost:5000/api/orders", {
-    method: "POST",
-    body: formData,
-  });
-
-  alert("Payment successful!");
-  navigate("/");
-};
-
+  };
 
   const handlePaymentError = (error) => {
     alert(
@@ -362,19 +344,19 @@ const getPricePerImage = (size, paper) => {
 
               <div className="space-y-4">
                 {imagesWithPreview.map((image, index) => (
-  <motion.div
-    key={image.id}
-    initial={{ opacity: 0, x: -20 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ delay: index * 0.1 }}
-    className="flex gap-4 p-4 bg-white/5 rounded-lg border border-white/10"
-  >
-    <div className="relative w-24 h-24 flex-shrink-0">
-      <img
-        src={image.preview} // <- use generated preview URL
-        alt={`Order item ${index + 1}`}
-        className="w-full h-full object-cover rounded-lg"
-      />
+                  <motion.div
+                    key={image.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex gap-4 p-4 bg-white/5 rounded-lg border border-white/10"
+                  >
+                    <div className="relative w-24 h-24 flex-shrink-0">
+                      <img
+                        src={image.preview}
+                        alt={`Order item ${index + 1}`}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
                       <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#E6C2A1] rounded-full flex items-center justify-center text-black text-xs font-bold">
                         {image.quantity}
                       </div>
@@ -758,28 +740,32 @@ const getPricePerImage = (size, paper) => {
 
             {/* Payment Method Section */}
             <motion.div
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.3 }}
-  className="bg-[#1f1d1b] backdrop-blur-xl rounded-xl shadow-lg p-6 border border-[#3a322b]"
->
-  <div className="flex items-center gap-3 mb-6">
-    <div className="w-10 h-10 bg-gradient-to-br from-[#E6C2A1] to-[#d4ac88] rounded-lg flex items-center justify-center">
-      <CreditCard className="w-5 h-5 text-black" />
-    </div>
-    <div>
-      <h2 className="text-xl font-bold text-[#E6C2A1]">Payment Method</h2>
-      <p className="text-sm text-gray-400">Choose your payment option</p>
-    </div>
-  </div>
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-[#1f1d1b] backdrop-blur-xl rounded-xl shadow-lg p-6 border border-[#3a322b]"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#E6C2A1] to-[#d4ac88] rounded-lg flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-black" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-[#E6C2A1]">
+                    Payment Method
+                  </h2>
+                  <p className="text-sm text-gray-400">
+                    Choose your payment option
+                  </p>
+                </div>
+              </div>
 
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {/* Cash on Delivery */}
-    <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={() => setPaymentMethod("cash_on_delivery")}
-      className={`
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Cash on Delivery */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setPaymentMethod("cash_on_delivery")}
+                  className={`
         relative p-6 rounded-xl border-2 transition-all text-left
         outline-none focus:outline-none focus:ring-0
         ${
@@ -788,37 +774,43 @@ const getPricePerImage = (size, paper) => {
             : "bg-[#1f1d1b] border-[#3a322b] hover:border-[#5a4d3f]"
         }
       `}
-    >
-      <div className="flex items-start gap-4">
-        <div
-          className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-            paymentMethod === "cash_on_delivery"
-              ? "bg-gradient-to-br from-[#E6C2A1] to-[#d4ac88]"
-              : "bg-[#3a322b]"
-          }`}
-        >
-          <Banknote
-            className={`w-6 h-6 ${
-              paymentMethod === "cash_on_delivery" ? "text-black" : "text-[#E6C2A1]"
-            }`}
-          />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-white font-semibold mb-1">Cash on Delivery</h3>
-          <p className="text-gray-400 text-sm">Pay when you receive your order</p>
-        </div>
-        {paymentMethod === "cash_on_delivery" && (
-          <CheckCircle className="w-6 h-6 text-[#E6C2A1]" />
-        )}
-      </div>
-    </motion.button>
+                >
+                  <div className="flex items-start gap-4">
+                    <div
+                      className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                        paymentMethod === "cash_on_delivery"
+                          ? "bg-gradient-to-br from-[#E6C2A1] to-[#d4ac88]"
+                          : "bg-[#3a322b]"
+                      }`}
+                    >
+                      <Banknote
+                        className={`w-6 h-6 ${
+                          paymentMethod === "cash_on_delivery"
+                            ? "text-black"
+                            : "text-[#E6C2A1]"
+                        }`}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-semibold mb-1">
+                        Cash on Delivery
+                      </h3>
+                      <p className="text-gray-400 text-sm">
+                        Pay when you receive your order
+                      </p>
+                    </div>
+                    {paymentMethod === "cash_on_delivery" && (
+                      <CheckCircle className="w-6 h-6 text-[#E6C2A1]" />
+                    )}
+                  </div>
+                </motion.button>
 
-    {/* Card Payment */}
-    <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={() => setPaymentMethod("card_payment")}
-      className={`
+                {/* Card Payment */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setPaymentMethod("card_payment")}
+                  className={`
         relative p-6 rounded-xl border-2 transition-all text-left
         outline-none focus:outline-none focus:ring-0
         ${
@@ -827,33 +819,38 @@ const getPricePerImage = (size, paper) => {
             : "bg-[#1f1d1b] border-[#3a322b] hover:border-[#5a4d3f]"
         }
       `}
-    >
-      <div className="flex items-start gap-4">
-        <div
-          className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-            paymentMethod === "card_payment"
-              ? "bg-gradient-to-br from-[#E6C2A1] to-[#d4ac88]"
-              : "bg-[#3a322b]"
-          }`}
-        >
-          <CreditCard
-            className={`w-6 h-6 ${
-              paymentMethod === "card_payment" ? "text-black" : "text-[#E6C2A1]"
-            }`}
-          />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-white font-semibold mb-1">Card Payment</h3>
-          <p className="text-gray-400 text-sm">Pay securely with your card</p>
-        </div>
-        {paymentMethod === "card_payment" && (
-          <CheckCircle className="w-6 h-6 text-[#E6C2A1]" />
-        )}
-      </div>
-    </motion.button>
-  </div>
-</motion.div>
-
+                >
+                  <div className="flex items-start gap-4">
+                    <div
+                      className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                        paymentMethod === "card_payment"
+                          ? "bg-gradient-to-br from-[#E6C2A1] to-[#d4ac88]"
+                          : "bg-[#3a322b]"
+                      }`}
+                    >
+                      <CreditCard
+                        className={`w-6 h-6 ${
+                          paymentMethod === "card_payment"
+                            ? "text-black"
+                            : "text-[#E6C2A1]"
+                        }`}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-semibold mb-1">
+                        Card Payment
+                      </h3>
+                      <p className="text-gray-400 text-sm">
+                        Pay securely with your card
+                      </p>
+                    </div>
+                    {paymentMethod === "card_payment" && (
+                      <CheckCircle className="w-6 h-6 text-[#E6C2A1]" />
+                    )}
+                  </div>
+                </motion.button>
+              </div>
+            </motion.div>
 
             {/* Stripe Payment Form (shown when card payment is selected) */}
             <AnimatePresence>

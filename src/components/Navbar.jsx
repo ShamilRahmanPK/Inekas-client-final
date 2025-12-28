@@ -84,7 +84,7 @@ function Navbar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="text-gray-200 focus:outline-none text-2xl p-1"
           >
-            {mobileMenuOpen ? "✕" : "☰"} {/* Clean minimal icons */}
+            {mobileMenuOpen ? "✕" : "☰"} 
           </button>
         </div>
       </div>

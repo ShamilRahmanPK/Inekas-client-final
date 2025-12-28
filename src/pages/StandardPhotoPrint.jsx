@@ -100,8 +100,6 @@ export default function StandardPhotoPrint() {
   return (
     <div className="bg-[#141414] min-h-screen w-full">
       <Navbar />
-
-      {/* Hero Section with Glassmorphic Design */}
       <div className="relative pt-24 pb-12 overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
@@ -130,7 +128,6 @@ export default function StandardPhotoPrint() {
               transition={{ duration: 0.6 }}
               className="space-y-6"
             >
-              {/* Main Image with Glassmorphic Frame */}
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#E6C2A1]/20 to-transparent rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                 <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">

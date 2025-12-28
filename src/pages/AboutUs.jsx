@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { motion, useAnimation, useInView } from "framer-motion";
 import NavBar from "../components/Navbar";
 
-// Import images (you'll need to add these to your assets folder)
+// image imports
 import aboutImage from "../assets/4x4-prev.jpg";
 import founderImage from "../assets/4x6-prev.jpg";
 
@@ -61,7 +61,7 @@ function AboutUs() {
           <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center">
             {/* Image */}
             <ScrollAnimatedContent delay={0.2}>
-              <div className="w-full md:w-1/2">
+              <div className="w-full">
                 <img
                   src={aboutImage}
                   alt="About Inekas Photography"
@@ -79,7 +79,7 @@ function AboutUs() {
                 <p className="text-sm sm:text-base text-[#D4D4D4] mb-4">
                   You are most welcome and thank you for visiting Inekas photography. We at Inekas photography are specialize in newborn, maternity, children and family portrait.
                 </p>
-                <p className="text-sm sm:text-base text-[#D4D4D4]">
+                <p className="text-xs/6 sm:text-xs/6 text-[#D4D4D4]">
                   We have been photographing newborns, children and families for the last twenty years. Photography is our full-time profession and we truly love creating wonderful images of those you love most. Newborn pictures are a long-standing tradition that brings family great pleasure. By making these photos easily accessible in digital form and beautiful albums, we hope to capture much of this joyful moments.
                 </p>
               </ScrollAnimatedContent>
@@ -94,7 +94,7 @@ function AboutUs() {
           <div className="flex flex-col md:flex-row-reverse gap-8 md:gap-12 items-center">
             {/* Image */}
             <ScrollAnimatedContent delay={0.2}>
-              <div className="w-full md:w-1/2">
+              <div className="w-full">
                 <img
                   src={founderImage}
                   alt="What we do"
