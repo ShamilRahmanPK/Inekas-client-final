@@ -5,7 +5,7 @@ import AboutUs from './pages/AboutUs';
 import StandardPhotoPrint from './pages/StandardPhotoPrint';
 import StandardPhotoUpload from './pages/StandardPhotoUpload';
 import Checkout from './pages/Checkout';
-import AdminHome from './pages/admin/adminHome';
+import AdminHome from './pages/admin/AdminHome';
 import ManageOrders from './pages/admin/ManageOrders';
 import Newborn from './pages/Newborn';
 import KidsPhotography from './pages/KidsPhotography';
