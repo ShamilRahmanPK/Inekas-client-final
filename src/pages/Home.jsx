@@ -5,18 +5,17 @@ import {
   useAnimation,
   useInView,
 } from "framer-motion";
-import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiChevronDown, FiChevronUp, FiPhoneCall, FiMail, FiCamera, FiHeart, FiStar, FiCheck } from "react-icons/fi";
 import NavBar from "../components/Navbar";
-import { FiPhoneCall } from "react-icons/fi";
+import Footer from "../components/Footer";
 
-// Import images
+// Import existing images
 import home_image from "../assets/home-image.jpg";
 import weddingImg from "../assets/4x4-prev.jpg";
 import birthdayImg from "../assets/4x4-prev.jpg";
 import outdoorImg from "../assets/4x4-prev.jpg";
 import productImg from "../assets/4x4-prev.jpg";
 import defaultImg from "../assets/4x4-prev.jpg";
-import Footer from "../components/Footer";
 
 const galleryImages = [
   weddingImg,
@@ -30,16 +29,15 @@ const galleryImages = [
 function ScrollAnimatedContent({ children, delay = 0 }) {
   const ref = useRef(null);
   const controls = useAnimation();
-  const isInView = useInView(ref);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   useEffect(() => {
     if (isInView) controls.start("visible");
-    else controls.start("hidden");
   }, [isInView, controls]);
 
   const variants = {
     hidden: { opacity: 0, y: 40 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, delay } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, delay } },
   };
 
   return (
@@ -55,379 +53,287 @@ function ScrollAnimatedContent({ children, delay = 0 }) {
 }
 
 function Home() {
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [hoveredService, setHoveredService] = useState(null);
 
   const services = [
     {
-      title: "Newborn",
+      title: "Newborn Photography",
+      shortTitle: "Newborn",
       description:
-        "Comprehensive Newborn photography packages tailored to your needs.",
-      image: weddingImg,
+        "Capture the precious first moments with gentle, safe, and creative newborn photography sessions.",
+      image: "https://images.pexels.com/photos/9252838/pexels-photo-9252838.jpeg",
+      price: "From $299",
+      features: ["Safe & Gentle", "Studio Props", "Digital Gallery"],
     },
     {
-      title: "Maternity",
+      title: "Maternity Sessions",
+      shortTitle: "Maternity",
       description:
-        "Maternity photography packages designed with your convenience in mind.",
-      image: birthdayImg,
+        "Celebrate the beauty of motherhood with elegant maternity portraits in stunning natural settings.",
+      image: "https://images.pexels.com/photos/2994029/pexels-photo-2994029.jpeg",
+      price: "From $249",
+      features: ["Outdoor/Studio", "Wardrobe Options", "Partner Shots"],
     },
     {
       title: "Cake Smash",
+      shortTitle: "Cake Smash",
       description:
-        "Flexible Cake Smash photography packages for your perfect moment.",
-      image: outdoorImg,
+        "Make their first birthday unforgettable with fun, colorful cake smash photography sessions.",
+      image: "https://images.pexels.com/photos/14197884/pexels-photo-14197884.jpeg",
+      price: "From $199",
+      features: ["Custom Setup", "Fun Themes", "Cleanup Included"],
     },
     {
-      title: "Kids Portrait",
+      title: "Family Portraits",
+      shortTitle: "Family",
       description:
-        "Custom Kids Portrait packages to suit every style and need.",
-      image: productImg,
+        "Preserve your family's bond with beautifully composed portraits perfect for any occasion.",
+      image: "https://images.pexels.com/photos/5416619/pexels-photo-5416619.jpeg",
+      price: "From $279",
+      features: ["All Ages Welcome", "Location Choice", "Print Packages"],
     },
   ];
 
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "New Mother",
+      text: "The newborn session was absolutely magical! So gentle with our baby and captured the most beautiful moments we'll treasure forever.",
+      rating: 5,
+      avatar: "https://i.pravatar.cc/150?u=sarah",
+    },
+    {
+      name: "Emily Rodriguez",
+      role: "Expecting Mother",
+      text: "My maternity photos are stunning! The photographer made me feel so comfortable and beautiful. Highly recommend!",
+      rating: 5,
+      avatar: "https://i.pravatar.cc/150?u=emily",
+    },
+    {
+      name: "Michael Chen",
+      role: "Proud Father",
+      text: "Our family portraits perfectly captured our personalities. Professional, creative, and worth every penny!",
+      rating: 5,
+      avatar: "https://i.pravatar.cc/150?u=michael",
+    },
+  ];
+
+  const stats = [
+    { number: "500+", label: "Happy Families" },
+    { number: "5+", label: "Years Experience" },
+    { number: "5.0", label: "Client Rating", icon: <FiStar /> },
+  ];
+
   return (
-    <div className="home-container overflow-x-hidden w-full">
+    <div className="home-container overflow-x-hidden w-full bg-[#141414]">
       <NavBar />
 
-      {/* HERO SECTION */}
-      <div className="relative w-full max-w-screen-2xl mx-auto">
-        <div className="flex flex-col md:flex-row min-h-screen w-full">
-          {/* LEFT SIDE */}
-          <div className="flex-1 bg-[#141414] flex flex-col justify-center md:justify-end p-6 sm:p-8 md:p-12 lg:p-16 py-12 md:py-16">
+      {/* ENHANCED HERO SECTION */}
+      <div className="relative w-full min-h-screen flex items-center">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src={home_image}
+            alt="Photography Studio"
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/75 to-black/60"></div>
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-20 md:py-32">
+          <div className="max-w-3xl">
+            <ScrollAnimatedContent delay={0.1}>
+              <div className="inline-flex items-center gap-2 bg-[#E6C2A1]/10 border border-[#E6C2A1]/30 px-4 py-2 rounded-full mb-6 backdrop-blur-sm">
+                <FiCamera className="text-[#E6C2A1]" />
+                <span className="text-[#E6C2A1] text-sm font-medium">
+                  Professional Photography Studio
+                </span>
+              </div>
+            </ScrollAnimatedContent>
+
             <ScrollAnimatedContent delay={0.2}>
-              <h1
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium mb-2 mt-10 md:mt-4"
-                style={{ color: "#E6C2A1" }}
-              >
-                Inekas Photography
+              <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-6 leading-tight">
+                <span className="text-white">Capturing Life's</span>
+                <br />
+                <span className="text-[#E6C2A1]">Precious Moments</span>
               </h1>
-              <div className="w-16 md:w-20 h-1 bg-[#E6C2A1] mb-4 md:mb-6 rounded"></div>
             </ScrollAnimatedContent>
 
-            <ScrollAnimatedContent delay={0.4}>
-              <h2
-                className="text-lg sm:text-xl md:text-2xl font-medium mb-4 md:mb-6"
-                style={{ color: "#E6C2A1", fontFamily: "Lora" }}
-              >
-                The way light brings objects to life
-              </h2>
-            </ScrollAnimatedContent>
-
-            <ScrollAnimatedContent delay={0.6}>
-              <p className="text-sm sm:text-base text-[#D4D4D4] max-w-md mb-6 md:mb-8">
-                From newborns and family portraits to events, products, and
-                creative projects, our studio captures life’s moments with
-                precision, creativity, and heart—turning them into memories
-                you’ll cherish forever.
+            <ScrollAnimatedContent delay={0.3}>
+              <p className="text-lg sm:text-xl text-[#D4D4D4] mb-8 leading-relaxed max-w-2xl">
+                From newborns and family portraits to maternity and milestone celebrations, 
+                we create timeless memories with precision, creativity, and heart.
               </p>
             </ScrollAnimatedContent>
 
-            <ScrollAnimatedContent delay={0.8}>
-              <div className="flex gap-4">
-                {/* CALL US BUTTON */}
+            <ScrollAnimatedContent delay={0.4}>
+              <div className="flex flex-wrap gap-4 mb-12">
                 <motion.a
-                  href="tel:+971XXXXXXXXX" 
-                  whileHover={{ x: 6 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className="flex items-center gap-2 bg-[#E6C2A1] text-black font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg shadow-lg hover:bg-transparent hover:text-[#E6C2A1] hover:border-2 hover:border-[#E6C2A1] transition text-sm md:text-base"
+                  href="tel:+971XXXXXXXXX"
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-2 bg-[#E6C2A1] text-black font-semibold py-3.5 px-8 rounded-lg shadow-lg hover:bg-[#d4ac88] transition-all"
                 >
                   <FiPhoneCall className="text-lg" />
                   Call Us
                 </motion.a>
 
-                {/* PACKAGES BUTTON */}
                 <motion.button
-                  whileHover={{ x: 6 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className="bg-transparent border-2 border-[#E6C2A1] text-[#E6C2A1] font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg hover:bg-[#E6C2A1] hover:text-black transition text-sm md:text-base"
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-transparent border-2 border-[#E6C2A1] text-[#E6C2A1] font-semibold py-3.5 px-8 rounded-lg hover:bg-[#E6C2A1] hover:text-black transition-all"
                 >
-                  Packages
+                  View Packages
                 </motion.button>
               </div>
             </ScrollAnimatedContent>
-          </div>
 
-          {/* RIGHT SIDE IMAGE */}
-          <div className="flex-1 relative h-64 sm:h-80 md:h-auto min-h-[300px] md:min-h-screen">
-            <img
-              src={home_image}
-              alt="Hero"
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/100"></div>
-          </div>
-        </div>
-
-        {/* BOTTOM BORDER LINE */}
-        <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gray-700"></div>
-      </div>
-
-      {/* SERVICES SECTION */}
-      <div className="w-full bg-[#141414] py-12 sm:py-16 md:py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
-          {/* HEADING */}
-          <div className="border-b border-gray-700 pb-4 md:pb-6">
-            <div className="service-heading flex flex-col md:flex-row justify-between gap-4 md:gap-6">
-              <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-0">
-                <div className="w-12 md:w-20 h-1 bg-[#E6C2A1] rounded"></div>
-                <h2 className="text-2xl sm:text-3xl text-[#E6C2A1] font-bold">
-                  Capture Your Moments with Affordable Elegance
-                </h2>
-              </div>
-              <div className="text-gray-300 max-w-xl text-sm sm:text-base">
-                <p>
-                  At Inekas, we believe that the best results come from true
-                  creative collaboration. Our diverse perspectives make our work
-                  stronger, allowing us to offer you premium photoshoots at a
-                  perfectly affordable price.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* ACCORDION + IMAGE PREVIEW */}
-          <div className="flex flex-col md:flex-row gap-8 md:gap-12 mt-8 md:mt-12">
-            {/* LEFT - ACCORDIONS */}
-            <div className="w-full md:w-1/2 space-y-4 md:space-y-8">
-              {services.map((service, index) => {
-                const ref = useRef(null);
-                const isInView = useInView(ref);
-                const controls = useAnimation();
-
-                useEffect(() => {
-                  if (isInView) controls.start("visible");
-                  else controls.start("hidden");
-                }, [isInView, controls]);
-
-                const itemVariants = {
-                  hidden: { opacity: 0, y: 30 },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: { duration: 0.5, delay: index * 0.2 },
-                  },
-                };
-
-                return (
-                  <motion.div
-                    key={index}
-                    ref={ref}
-                    initial="hidden"
-                    animate={controls}
-                    variants={itemVariants}
-                    className="border-b border-gray-700 p-3 md:p-5"
-                  >
-                    <div
-                      className="flex justify-between items-center cursor-pointer"
-                      onClick={() =>
-                        setActiveIndex(activeIndex === index ? null : index)
-                      }
-                    >
-                      <h3 className="text-lg sm:text-xl font-semibold text-[#D6D1CE]">
-                        {service.title}
-                      </h3>
-                      <span className="text-white text-xl md:text-2xl">
-                        {activeIndex === index ? (
-                          <FiChevronUp />
-                        ) : (
-                          <FiChevronDown />
-                        )}
-                      </span>
+            {/* Stats */}
+            <ScrollAnimatedContent delay={0.5}>
+              <div className="flex flex-wrap gap-8">
+                {stats.map((stat, index) => (
+                  <div key={index} className="flex flex-col">
+                    <div className="flex items-center gap-2 text-3xl font-bold text-[#E6C2A1] mb-1">
+                      {stat.number}
+                      {stat.icon && <span className="text-xl">{stat.icon}</span>}
                     </div>
-
-                    <AnimatePresence>
-                      {activeIndex === index && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="mt-3 md:mt-4 text-xs sm:text-sm text-[#D4D4D4]"
-                        >
-                          <p className="mb-3 md:mb-4">{service.description}</p>
-                          <button className="bg-[#E6C2A1] text-black font-semibold px-3 py-1.5 md:px-4 md:py-2 text-[#E6C2A1] rounded-lg hover:bg-[#d6ad8a] transition text-xs sm:text-sm">
-                            View Details
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            {/* RIGHT — PREVIEW IMAGE */}
-            <div className="w-full md:w-1/2">
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={activeIndex}
-                  src={
-                    activeIndex !== null
-                      ? services[activeIndex].image
-                      : defaultImg
-                  }
-                  alt="Preview"
-                  className="rounded-xl shadow-lg w-full object-cover h-[250px] sm:h-[300px] md:h-[400px]"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                />
-              </AnimatePresence>
-            </div>
+                    <div className="text-sm text-[#D4D4D4]">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </ScrollAnimatedContent>
           </div>
         </div>
       </div>
 
-      {/* CREATIVE THEMES SECTION */}
-      <div className="w-full bg-[#0f0f0f] py-12 sm:py-16 md:py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
-          <ScrollAnimatedContent delay={0.2}>
-            <div className="text-center mb-8 md:mb-12">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl text-[#E6C2A1] font-bold mb-4">
-                Creative Newborn Photography Themes
+      {/* SERVICES SECTION - MODERN CARDS */}
+      <div className="w-full bg-[#0f0f0f] py-20 md:py-32">
+        <div className="max-w-7xl mx-auto px-6">
+          <ScrollAnimatedContent>
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 bg-[#E6C2A1]/10 border border-[#E6C2A1]/30 px-4 py-2 rounded-full mb-4">
+                <FiCamera className="text-[#E6C2A1]" />
+                <span className="text-[#E6C2A1] text-sm font-medium">Our Services</span>
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-bold text-[#E6C2A1] mb-6">
+                Specialized Photography Sessions
               </h2>
-              <p className="text-sm sm:text-base text-[#D4D4D4] max-w-3xl mx-auto">
-                Explore a diverse selection of creative themes and distinctive
-                add-ons for newborn photography. Each theme is crafted by
-                independent artists, designed to enhance your photos and make
-                them truly memorable.
+              <p className="text-lg text-[#D4D4D4] max-w-3xl mx-auto">
+                Comprehensive photography packages tailored to celebrate every precious moment 
+                with creativity and care.
               </p>
             </div>
           </ScrollAnimatedContent>
 
-          {/* Themes Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {[
-              {
-                title: "Diamond",
-                description:
-                  "Comprehensive Newborn photography packages tailored to your needs.",
-                image: weddingImg,
-              },
-              {
-                title: "Star",
-                description:
-                  "Maternity photography packages designed with your convenience in mind.",
-                image: birthdayImg,
-              },
-              {
-                title: "Sunflower",
-                description:
-                  "Flexible Cake Smash photography packages for your perfect moment.",
-                image: outdoorImg,
-              },
-              {
-                title: "Sky",
-                description:
-                  "Custom Kids Portrait packages to suit every style and need.",
-                image: productImg,
-              },
-            ].map((theme, index) => (
-              <ScrollAnimatedContent key={index} delay={0.2 + index * 0.1}>
-                <div className="bg-[#1a1a1a] rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 h-full flex flex-col">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {services.map((service, index) => (
+              <ScrollAnimatedContent key={index} delay={0.1 * index}>
+                <motion.div
+                  onHoverStart={() => setHoveredService(index)}
+                  onHoverEnd={() => setHoveredService(null)}
+                  className="group relative bg-[#1a1a1a] rounded-2xl overflow-hidden h-full border border-gray-800 hover:border-[#E6C2A1]/50 transition-all duration-300"
+                >
                   {/* Image */}
-                  <img
-                    src={theme.image}
-                    alt={theme.title}
-                    className="w-full h-48 object-cover"
-                  />
+                  <div className="relative h-64 overflow-hidden">
+                    <motion.img
+                      src={service.image}
+                      alt={service.title}
+                      className="w-full h-full object-cover"
+                      animate={{
+                        scale: hoveredService === index ? 1.1 : 1,
+                      }}
+                      transition={{ duration: 0.4 }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    
+                    {/* Price Badge */}
+                    <div className="absolute top-4 right-4 bg-[#E6C2A1] text-black px-4 py-2 rounded-full font-semibold text-sm">
+                      {service.price}
+                    </div>
+                  </div>
 
                   {/* Content */}
-                  <div className="p-4 flex flex-col flex-grow">
-                    <h3 className="text-lg font-semibold text-[#E6C2A1] mb-2">
-                      {theme.title}
+                  <div className="p-6">
+                    <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-[#E6C2A1] transition-colors">
+                      {service.title}
                     </h3>
-
-                    <p className="text-xs sm:text-sm text-[#D4D4D4] flex-grow">
-                      {theme.description}
+                    <p className="text-[#D4D4D4] mb-4 text-sm leading-relaxed">
+                      {service.description}
                     </p>
+
+                    {/* Features */}
+                    <div className="space-y-2 mb-4">
+                      {service.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm text-[#D4D4D4]">
+                          <FiCheck className="text-[#E6C2A1] flex-shrink-0" size={16} />
+                          <span>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <motion.button
+                      whileHover={{ x: 4 }}
+                      className="text-[#E6C2A1] font-semibold text-sm flex items-center gap-2 group"
+                    >
+                      Learn More
+                      <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </motion.button>
                   </div>
-                </div>
+                </motion.div>
               </ScrollAnimatedContent>
             ))}
           </div>
-
-          {/* CTA Button */}
-          <ScrollAnimatedContent delay={0.8}>
-            <div className="text-center mt-8 md:mt-12">
-              <button className="relative overflow-hidden bg-[#E6C2A1] text-black font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg shadow-lg text-sm md:text-base group">
-                {/* Sliding hover layer */}
-                <span className="absolute inset-0 bg-[#d4ac88] translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300 ease-out"></span>
-
-                {/* Button text */}
-                <span className="relative z-10">Book Now</span>
-              </button>
-            </div>
-          </ScrollAnimatedContent>
         </div>
       </div>
 
-      {/* GALLERY SECTION */}
-      <div className="w-full bg-[#141414] py-14 sm:py-18 md:py-24 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
-          {/* Title */}
-          <div className="mb-12">
-            <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6">
-              {/* Left: Title */}
-              <h2 className="text-2xl sm:text-3xl md:text-4xl text-[#E6C2A1] font-bold whitespace-nowrap">
-                Gallery
-              </h2>
-
-              {/* Middle: Line */}
-              <div className="flex-1 h-[2px] bg-gradient-to-r from-[#E6C2A1] via-[#E6C2A1]/60 to-transparent rounded" />
-
-              {/* Right: Description */}
-              <p className="text-sm sm:text-base text-gray-400 max-w-xs text-center md:text-right">
-                A glimpse of moments captured with passion, precision, and
-                timeless storytelling.
-              </p>
+      {/* GALLERY SECTION - IMPROVED */}
+      <div className="w-full bg-[#141414] py-20 md:py-32">
+        <div className="max-w-7xl mx-auto px-6">
+          <ScrollAnimatedContent>
+            <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
+              <div>
+                <h2 className="text-4xl sm:text-5xl font-bold text-[#E6C2A1] mb-3">
+                  Our Portfolio
+                </h2>
+                <p className="text-lg text-[#D4D4D4]">
+                  A glimpse of moments captured with passion and precision
+                </p>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-[#E6C2A1] text-black font-semibold py-3 px-8 rounded-lg hover:bg-[#d4ac88] transition-all"
+              >
+                View Full Gallery
+              </motion.button>
             </div>
-          </div>
+          </ScrollAnimatedContent>
 
-          {/* Crawler Wrapper */}
-          <div className="relative border border-[#2a2a2a] rounded-2xl overflow-hidden bg-black/30 backdrop-blur-sm">
-            {/* Left Gradient */}
-            <div
-              className="pointer-events-none absolute left-0 top-0 h-full w-20 sm:w-28 md:w-36 
-        bg-gradient-to-r from-black via-black/10 to-transparent z-10"
-            />
+          {/* Scrolling Gallery */}
+          <div className="relative overflow-hidden rounded-2xl border border-gray-800">
+            {/* Gradients */}
+            <div className="pointer-events-none absolute left-0 top-0 h-full w-32 bg-gradient-to-r from-[#141414] to-transparent z-10" />
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-32 bg-gradient-to-l from-[#141414] to-transparent z-10" />
 
-            {/* Right Gradient */}
-            <div
-              className="pointer-events-none absolute right-0 top-0 h-full w-20 sm:w-28 md:w-36 
-        bg-gradient-to-l from-black via-black/10 to-transparent z-10"
-            />
-
-            {/* Bottom Gradient */}
-            <div
-              className="pointer-events-none absolute bottom-0 left-0 w-full h-32 
-        bg-gradient-to-t from-black via-black/30 to-transparent z-10"
-            />
-
-            {/* Crawler */}
             <motion.div
-              className="flex gap-6 px-6 py-20"
-              animate={{ x: ["0%", "-100%"] }}
+              className="flex gap-6 py-8 px-6"
+              animate={{ x: ["0%", "-50%"] }}
               transition={{
                 repeat: Infinity,
                 ease: "linear",
-                duration: 38,
+                duration: 30,
               }}
             >
-              {[...galleryImages, ...galleryImages].map((img, index) => (
+              {[...galleryImages, ...galleryImages, ...galleryImages].map((img, index) => (
                 <div
                   key={index}
-                  className="min-w-[240px] sm:min-w-[280px] md:min-w-[320px]
-                       h-[240px] sm:h-[280px] md:h-[320px]
-                       overflow-hidden rounded-xl shadow-lg"
+                  className="min-w-[320px] h-[320px] rounded-xl overflow-hidden shadow-lg flex-shrink-0"
                 >
                   <img
                     src={img}
                     alt={`Gallery ${index + 1}`}
-                    className="w-full h-full object-cover
-                         transition-transform duration-700 hover:scale-110"
+                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
                   />
                 </div>
               ))}
@@ -436,65 +342,202 @@ function Home() {
         </div>
       </div>
 
-      {/* MOTHERHOOD JOURNEY SECTION */}
-      <div className="w-full bg-[#0f0f0f] py-12 sm:py-16 md:py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
-          <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center">
-            {/* Image */}
+      {/* TESTIMONIALS SECTION */}
+      <div className="w-full bg-[#0f0f0f] py-20 md:py-32">
+        <div className="max-w-7xl mx-auto px-6">
+          <ScrollAnimatedContent>
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 bg-[#E6C2A1]/10 border border-[#E6C2A1]/30 px-4 py-2 rounded-full mb-4">
+                <FiHeart className="text-[#E6C2A1]" />
+                <span className="text-[#E6C2A1] text-sm font-medium">Testimonials</span>
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-bold text-[#E6C2A1] mb-6">
+                What Our Clients Say
+              </h2>
+              <p className="text-lg text-[#D4D4D4] max-w-2xl mx-auto">
+                Don't just take our word for it – hear from families we've had the pleasure of working with
+              </p>
+            </div>
+          </ScrollAnimatedContent>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <ScrollAnimatedContent key={index} delay={0.1 * index}>
+                <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-gray-800 hover:border-[#E6C2A1]/50 transition-all h-full">
+                  {/* Rating */}
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <FiStar key={i} className="text-[#E6C2A1] fill-current" size={18} />
+                    ))}
+                  </div>
+
+                  {/* Quote */}
+                  <p className="text-[#D4D4D4] mb-6 leading-relaxed italic">
+                    "{testimonial.text}"
+                  </p>
+
+                  {/* Author */}
+                  <div className="flex items-center gap-4 pt-4 border-t border-gray-800">
+                    <img
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      className="w-12 h-12 rounded-full"
+                    />
+                    <div>
+                      <div className="font-semibold text-white">
+                        {testimonial.name}
+                      </div>
+                      <div className="text-sm text-[#D4D4D4]">
+                        {testimonial.role}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ScrollAnimatedContent>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* CREATIVE THEMES SECTION - SIMPLIFIED */}
+      <div className="w-full bg-[#141414] py-20 md:py-32">
+        <div className="max-w-7xl mx-auto px-6">
+          <ScrollAnimatedContent>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl sm:text-5xl font-bold text-[#E6C2A1] mb-6">
+                Creative Newborn Photography Themes
+              </h2>
+              <p className="text-lg text-[#D4D4D4] max-w-3xl mx-auto">
+                Explore our diverse selection of creative themes and distinctive add-ons 
+                designed to make your photos truly memorable
+              </p>
+            </div>
+          </ScrollAnimatedContent>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {["Diamond", "Star", "Sunflower", "Sky"].map((theme, index) => (
+              <ScrollAnimatedContent key={index} delay={0.1 * index}>
+                <motion.div
+                  whileHover={{ y: -8 }}
+                  className="bg-[#1a1a1a] rounded-2xl overflow-hidden border border-gray-800 hover:border-[#E6C2A1]/50 transition-all"
+                >
+                  <div className="h-48 overflow-hidden">
+                    <img
+                      src={[weddingImg, birthdayImg, outdoorImg, productImg][index]}
+                      alt={theme}
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-white mb-2">{theme}</h3>
+                    <p className="text-sm text-[#D4D4D4]">
+                      Beautiful themed setup with professional props
+                    </p>
+                  </div>
+                </motion.div>
+              </ScrollAnimatedContent>
+            ))}
+          </div>
+
+          <ScrollAnimatedContent delay={0.5}>
+            <div className="text-center mt-12">
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-[#E6C2A1] text-black font-semibold py-3.5 px-10 rounded-lg shadow-lg hover:bg-[#d4ac88] transition-all"
+              >
+                Book Your Session
+              </motion.button>
+            </div>
+          </ScrollAnimatedContent>
+        </div>
+      </div>
+
+      {/* MOTHERHOOD JOURNEY SECTION - ENHANCED */}
+      <div className="w-full bg-[#0f0f0f] py-20 md:py-32">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row gap-12 items-center">
             <ScrollAnimatedContent delay={0.2}>
               <div className="w-full md:w-1/2">
-                <img
-                  src={home_image}
-                  alt="Motherhood Journey"
-                  className="rounded-xl shadow-lg w-full object-cover h-[300px] sm:h-[400px]"
-                />
+                <div className="relative rounded-2xl overflow-hidden">
+                  <img
+                    src={home_image}
+                    alt="Motherhood Journey"
+                    className="w-full h-[400px] md:h-[500px] object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                </div>
               </div>
             </ScrollAnimatedContent>
 
-            {/* Content */}
             <div className="w-full md:w-1/2">
               <ScrollAnimatedContent delay={0.4}>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#E6C2A1] mb-4 md:mb-6">
-                  The Heartfelt Journey of Becoming a Mother
+                <div className="inline-flex items-center gap-2 bg-[#E6C2A1]/10 border border-[#E6C2A1]/30 px-4 py-2 rounded-full mb-6">
+                  <FiHeart className="text-[#E6C2A1]" />
+                  <span className="text-[#E6C2A1] text-sm font-medium">Special Moments</span>
+                </div>
+                <h2 className="text-4xl sm:text-5xl font-bold text-[#E6C2A1] mb-6">
+                  The Journey of Becoming a Mother
                 </h2>
-                <p className="text-sm sm:text-base text-[#D4D4D4] mb-6 md:mb-8">
-                  Being a mother is one of life's most extraordinary
-                  experiences. At INEKAS, we are dedicated to capturing these
-                  cherished moments with the artistry and passion of our
-                  talented creative team. This version enhances flow and
-                  emphasizes the uniqueness of the experience and the team's
-                  commitment.
+                <p className="text-lg text-[#D4D4D4] mb-8 leading-relaxed">
+                  Being a mother is one of life's most extraordinary experiences. At Inekas, 
+                  we're dedicated to capturing these cherished moments with artistry and passion, 
+                  creating timeless memories you'll treasure forever.
                 </p>
-                <button className="bg-[#E6C2A1] text-white font-semibold py-2.5 px-6 md:py-3 md:px-8 rounded-lg shadow-lg hover:bg-[#d4ac88] transition text-sm md:text-base">
-                  Book Now
-                </button>
+                <motion.button
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-[#E6C2A1] text-black font-semibold py-3.5 px-10 rounded-lg shadow-lg hover:bg-[#d4ac88] transition-all"
+                >
+                  Book Maternity Session
+                </motion.button>
               </ScrollAnimatedContent>
             </div>
           </div>
         </div>
       </div>
 
-      {/* CTA SECTION */}
-      <div className="w-full bg-[#141414] py-12 sm:py-16 md:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 text-center">
-          <ScrollAnimatedContent delay={0.2}>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#E6C2A1] mb-6">
-              We Love New Challenges
+      {/* FINAL CTA SECTION */}
+      <div className="w-full bg-[#141414] py-20 md:py-32 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(circle at 2px 2px, #E6C2A1 1px, transparent 0)',
+            backgroundSize: '48px 48px'
+          }}></div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <ScrollAnimatedContent>
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
+              Ready to Create <span className="text-[#E6C2A1]">Beautiful Memories</span>?
             </h2>
-            <p className="text-base sm:text-lg text-[#D4D4D4] mb-8">
-              Join us for a great photo session.
+            <p className="text-lg sm:text-xl text-[#D4D4D4] mb-10 max-w-2xl mx-auto">
+              Let's capture your special moments with creativity and care. 
+              Book your session today and preserve memories that will last a lifetime.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-[#E6C2A1] text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:bg-[#d4ac88] transition">
-                Contact
-              </button>
-              <button className="bg-transparent border-2 border-[#E6C2A1] text-[#E6C2A1] font-semibold py-3 px-8 rounded-lg hover:bg-[#E6C2A1] hover:text-white transition">
-                More Info
-              </button>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center gap-2 bg-[#E6C2A1] text-black font-semibold py-4 px-10 rounded-lg shadow-lg hover:bg-[#d4ac88] transition-all"
+              >
+                <FiPhoneCall />
+                Contact Us Today
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex items-center gap-2 bg-transparent border-2 border-[#E6C2A1] text-[#E6C2A1] font-semibold py-4 px-10 rounded-lg hover:bg-[#E6C2A1] hover:text-black transition-all"
+              >
+                <FiMail />
+                Get More Info
+              </motion.button>
             </div>
           </ScrollAnimatedContent>
         </div>
       </div>
+
       <Footer />
     </div>
   );

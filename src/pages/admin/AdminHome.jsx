@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FiUsers,
@@ -11,11 +11,31 @@ import {
   FiLogOut,
   FiChevronLeft,
   FiChevronRight,
+  FiMenu,
+  FiX,
 } from "react-icons/fi";
 
 function AdminHome() {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const stats = [
     { title: "Total Orders", value: "1,248", icon: <FiShoppingCart /> },
@@ -41,10 +61,24 @@ function AdminHome() {
 
   return (
     <div className="flex min-h-screen bg-[#141414] text-gray-300">
+      {/* Mobile Overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div
-        className={`flex flex-col h-screen fixed z-20 top-0 left-0 bg-[#1a1a1a] border-r border-[#2a2a2a] transition-all duration-300 ${
-          sidebarOpen ? "w-64" : "w-22"
+        className={`flex flex-col h-screen fixed z-40 top-0 left-0 bg-[#1a1a1a] border-r border-[#2a2a2a] transition-all duration-300 ${
+          isMobile
+            ? sidebarOpen
+              ? "translate-x-0 w-64"
+              : "-translate-x-full w-64"
+            : sidebarOpen
+            ? "w-64"
+            : "w-20"
         }`}
       >
         {/* Header + Toggle */}
@@ -52,17 +86,30 @@ function AdminHome() {
           {sidebarOpen ? (
             <h1 className="text-xl font-bold text-[#E6C2A1]">Admin</h1>
           ) : (
-            <div className="w-0"></div> 
+            <div className="w-0"></div>
           )}
 
-          {/* Toggle button */}
-          <button
-            className={`text-gray-400 hover:text-white transition 
-                  ${sidebarOpen ? "text-xl" : "text-lg mx-auto"}`}
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            {sidebarOpen ? <FiChevronLeft /> : <FiChevronRight />}
-          </button>
+          {/* Toggle button - desktop only */}
+          {!isMobile && (
+            <button
+              className={`text-gray-400 hover:text-white transition ${
+                sidebarOpen ? "text-xl" : "text-lg mx-auto"
+              }`}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              {sidebarOpen ? <FiChevronLeft /> : <FiChevronRight />}
+            </button>
+          )}
+
+          {/* Close button - mobile only */}
+          {isMobile && (
+            <button
+              className="text-gray-400 hover:text-white transition text-xl lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FiX />
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
@@ -89,7 +136,7 @@ function AdminHome() {
           ))}
 
           <button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate("/")}
             className={`flex items-center gap-3 p-3 rounded-lg hover:bg-[#2a2a2a] transition mt-4 w-full
       ${sidebarOpen ? "justify-start" : "justify-center"}`}
           >
@@ -102,32 +149,50 @@ function AdminHome() {
       {/* Main Content */}
       <div
         className={`flex-1 transition-all duration-300 ${
-          sidebarOpen ? "ml-64" : "ml-20"
-        } p-6`}
+          isMobile ? "ml-0" : sidebarOpen ? "ml-64" : "ml-20"
+        } p-4 sm:p-6`}
       >
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-3 text-[#E6C2A1]">
-          Admin Dashboard
-        </h1>
-        <p className="text-gray-400 max-w-2xl mb-8">
+        {/* Mobile Header with Hamburger */}
+        {isMobile && (
+          <div className="flex items-center gap-4 mb-6">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden text-2xl text-[#E6C2A1] hover:text-[#d4ac88] transition"
+            >
+              <FiMenu />
+            </button>
+            <h1 className="text-2xl font-bold text-[#E6C2A1]">
+              Admin Dashboard
+            </h1>
+          </div>
+        )}
+
+        {/* Desktop Header */}
+        {!isMobile && (
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-3 text-[#E6C2A1]">
+            Admin Dashboard
+          </h1>
+        )}
+        <p className="text-sm sm:text-base text-gray-400 max-w-2xl mb-6 sm:mb-8">
           Manage orders, track performance, upload galleries, and control
           everything related to Inekas Photography.
         </p>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {stats.map((item, index) => (
             <div
               key={index}
-              className="bg-[#1a1a1a] rounded-xl p-6 flex flex-col justify-between hover:scale-105 transition transform shadow-lg"
+              className="bg-[#1a1a1a] rounded-xl p-4 sm:p-6 flex flex-col justify-between hover:scale-105 transition transform shadow-lg"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{item.title}</p>
-                  <h3 className="text-2xl font-bold text-[#E6C2A1] mt-1">
+                  <p className="text-xs sm:text-sm text-gray-400">{item.title}</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-[#E6C2A1] mt-1">
                     {item.value}
                   </h3>
                 </div>
-                <div className="text-3xl text-[#E6C2A1] opacity-80">
+                <div className="text-2xl sm:text-3xl text-[#E6C2A1] opacity-80">
                   {item.icon}
                 </div>
               </div>
@@ -136,25 +201,25 @@ function AdminHome() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-semibold text-[#E6C2A1] mb-6">
+        <div className="mt-8 sm:mt-12">
+          <h2 className="text-xl sm:text-2xl font-semibold text-[#E6C2A1] mb-4 sm:mb-6">
             Quick Actions
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {quickActions.map((action, index) => (
               <Link
                 key={index}
                 to={action.link}
-                className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-6 flex flex-col items-start hover:border-[#E6C2A1] hover:bg-[#1f1f1f] transition transform hover:scale-105 shadow-lg"
+                className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-6 flex flex-col items-start hover:border-[#E6C2A1] hover:bg-[#1f1f1f] transition transform hover:scale-105 shadow-lg"
               >
-                <span className="text-3xl text-[#E6C2A1] mb-4">
+                <span className="text-2xl sm:text-3xl text-[#E6C2A1] mb-3 sm:mb-4">
                   {action.icon}
                 </span>
-                <h3 className="text-lg font-semibold text-gray-200">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-200">
                   {action.title}
                 </h3>
-                <p className="text-sm text-gray-400 mt-1">Click to manage</p>
+                <p className="text-xs sm:text-sm text-gray-400 mt-1">Click to manage</p>
               </Link>
             ))}
           </div>

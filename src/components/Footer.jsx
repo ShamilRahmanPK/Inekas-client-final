@@ -1,6 +1,8 @@
 import { FaInstagram, FaFacebookF, FaWhatsapp } from "react-icons/fa";
+import { useNavigate } from "react-router";
 
 const Footer = () => {
+  const navigate = useNavigate()
   return (
     <footer className="bg-[#0f0f0f] text-[#D4D4D4] pt-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
@@ -43,6 +45,7 @@ const Footer = () => {
               <li className="hover:text-[#E6C2A1] transition">Photo Print</li>
               <li className="hover:text-[#E6C2A1] transition">Packages</li>
               <li className="hover:text-[#E6C2A1] transition">Contact</li>
+              <a onClick={()=> {navigate("/admin/home");}}><li>Admin login</li></a>
             </ul>
           </div>
 

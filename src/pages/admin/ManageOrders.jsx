@@ -137,7 +137,7 @@ ${order.images
 
   return (
     <div className="w-full min-h-screen bg-[#141414] text-gray-300">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* BACK */}
         <button
           onClick={() => navigate("/admin/home")}
@@ -146,27 +146,27 @@ ${order.images
           <FiArrowLeft /> Back to Dashboard
         </button>
 
-        <h1 className="text-3xl font-bold text-[#E6C2A1] mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#E6C2A1] mb-4 sm:mb-6">
           Manage Orders
         </h1>
 
         {/* SEARCH + FILTER */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="flex flex-col sm:flex-col md:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
           <input
             type="text"
             placeholder="Search by name or order ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 rounded-lg text-sm"
+            className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] px-3 sm:px-4 py-2 rounded-lg text-sm"
           />
 
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap justify-start sm:justify-start">
             {["all", "pending", "processing", "completed", "cancelled"].map(
               (s) => (
                 <button
                   key={s}
                   onClick={() => setFilter(s)}
-                  className={`px-3 py-1 text-xs rounded-lg capitalize ${
+                  className={`px-2.5 sm:px-3 py-1.5 sm:py-1 text-xs rounded-lg capitalize whitespace-nowrap ${
                     filter === s
                       ? "bg-[#E6C2A1] text-black"
                       : "bg-[#1a1a1a] border border-[#2a2a2a]"
@@ -180,16 +180,16 @@ ${order.images
         </div>
 
         {/* ORDER CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredOrders.map((order) => (
             <motion.div
               key={order._id}
               onClick={() => setSelectedOrder(order)}
               whileHover={{ scale: 1.02 }}
-              className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 cursor-pointer"
+              className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-3 sm:p-4 cursor-pointer hover:border-[#E6C2A1]/30 transition-colors"
             >
               <div className="flex justify-between items-center mb-2">
-                <h2 className="font-semibold text-[#E6C2A1]">
+                <h2 className="font-semibold text-sm sm:text-base text-[#E6C2A1] truncate">
                   {order.deliveryAddress.fullName}
                 </h2>
 
@@ -208,13 +208,13 @@ ${order.images
                 </span>
               </div>
 
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 mt-1">
                 Order ID: {order._id.slice(-6)}
               </p>
-              <p className="text-xs text-gray-400 capitalize">
+              <p className="text-xs text-gray-400 capitalize truncate">
                 Payment: {order.paymentMethod.replaceAll("_", " ")}
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs sm:text-sm text-gray-400 mt-1 font-semibold">
                 Total: ${order.pricing.total}
               </p>
             </motion.div>
@@ -225,7 +225,7 @@ ${order.images
         <AnimatePresence>
           {selectedOrder && (
             <motion.div
-              className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -237,53 +237,55 @@ ${order.images
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="bg-[#181818] rounded-2xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-auto shadow-2xl border border-[#2a2a2a]"
+                className="bg-[#181818] rounded-xl sm:rounded-2xl max-w-3xl w-full p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto shadow-2xl border border-[#2a2a2a]"
               >
                 {/* HEADER */}
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-[#E6C2A1]">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="text-lg sm:text-xl font-semibold text-[#E6C2A1] truncate pr-2">
                     {selectedOrder.deliveryAddress.fullName}'s Order
                   </h2>
                   <button
                     onClick={() => setSelectedOrder(null)}
-                    className="text-gray-400 hover:text-white text-xl"
+                    className="text-gray-400 hover:text-white text-2xl flex-shrink-0"
                   >
                     &times;
                   </button>
                 </div>
 
                 {/* ADDRESS */}
-                <div className="mb-5 bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
-                  <h3 className="font-semibold mb-2 text-[#E6C2A1]">
+                <div className="mb-4 sm:mb-5 bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg sm:rounded-xl p-3 sm:p-4">
+                  <h3 className="font-semibold mb-2 text-sm sm:text-base text-[#E6C2A1]">
                     Delivery Address
                   </h3>
-                  <p className="text-sm">
+                  <p className="text-xs sm:text-sm text-gray-300">
                     {selectedOrder.deliveryAddress.addressLine1}
                   </p>
-                  <p className="text-sm">
-                    {selectedOrder.deliveryAddress.addressLine2}
-                  </p>
-                  <p className="text-sm">
+                  {selectedOrder.deliveryAddress.addressLine2 && (
+                    <p className="text-xs sm:text-sm text-gray-300">
+                      {selectedOrder.deliveryAddress.addressLine2}
+                    </p>
+                  )}
+                  <p className="text-xs sm:text-sm text-gray-300">
                     {selectedOrder.deliveryAddress.city},{" "}
                     {selectedOrder.deliveryAddress.state}
                   </p>
-                  <p className="text-sm">
+                  <p className="text-xs sm:text-sm text-gray-300">
                     {selectedOrder.deliveryAddress.country}
                   </p>
-                  <p className="text-sm mt-2">
+                  <p className="text-xs sm:text-sm text-gray-300 mt-2">
                     Phone: {selectedOrder.deliveryAddress.phoneNumber}
                   </p>
-                  <p className="text-sm">
+                  <p className="text-xs sm:text-sm text-gray-300 break-all">
                     Email: {selectedOrder.deliveryAddress.email}
                   </p>
                 </div>
 
                 {/* IMAGES */}
-                <div className="mb-5 bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
-                  <h3 className="font-semibold mb-3 text-[#E6C2A1]">
+                <div className="mb-4 sm:mb-5 bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg sm:rounded-xl p-3 sm:p-4">
+                  <h3 className="font-semibold mb-3 text-sm sm:text-base text-[#E6C2A1]">
                     Order Images
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {selectedOrder.images.map((img) => (
                       <div
                         key={img._id}
@@ -292,9 +294,9 @@ ${order.images
                         <img
                           src={img.url}
                           alt="order"
-                          className="w-full h-36 object-cover"
+                          className="w-full h-32 sm:h-36 object-cover"
                         />
-                        <div className="absolute bottom-0 left-0 w-full bg-black/70 text-xs p-2">
+                        <div className="absolute bottom-0 left-0 w-full bg-black/70 text-xs sm:text-sm p-1.5 sm:p-2">
                           {img.size} | {img.paper} | Qty: {img.quantity}
                         </div>
                       </div>
@@ -303,15 +305,15 @@ ${order.images
                 </div>
 
                 {/* PRICING */}
-                <div className="mb-5 bg-[#1f1f1f] border border-[#2a2a2a] rounded-xl p-4">
-                  <h3 className="font-semibold mb-2 text-[#E6C2A1]">
+                <div className="mb-4 sm:mb-5 bg-[#1f1f1f] border border-[#2a2a2a] rounded-lg sm:rounded-xl p-3 sm:p-4">
+                  <h3 className="font-semibold mb-2 text-sm sm:text-base text-[#E6C2A1]">
                     Pricing & Payment
                   </h3>
-                  <div className="text-sm space-y-1">
+                  <div className="text-xs sm:text-sm space-y-1 text-gray-300">
                     <p>Subtotal: ${selectedOrder.pricing.subtotal}</p>
                     <p>Discount: ${selectedOrder.pricing.discount}</p>
                     <p>Delivery: ${selectedOrder.pricing.deliveryCharge}</p>
-                    <p className="font-semibold text-white">
+                    <p className="font-semibold text-white text-sm sm:text-base">
                       Total: ${selectedOrder.pricing.total}
                     </p>
                     <p className="text-xs text-gray-400 capitalize mt-2">
@@ -322,14 +324,14 @@ ${order.images
                 </div>
 
                 {/* ACTIONS */}
-                <div className="flex flex-wrap gap-3 mt-6">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-6">
                   {selectedOrder.status === "pending" ? (
                     <button
                       onClick={() =>
                         handleStatusUpdate(selectedOrder._id, "processing")
                       }
                       disabled={loadingStatusId === selectedOrder._id}
-                      className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black py-2 rounded-xl font-medium transition flex justify-center items-center gap-2"
+                      className="flex-1 min-w-[120px] bg-yellow-500 hover:bg-yellow-600 text-black py-2.5 sm:py-2 rounded-lg sm:rounded-xl font-medium transition flex justify-center items-center gap-2 text-sm sm:text-base"
                     >
                       {loadingStatusId === selectedOrder._id ? (
                         <CircularProgress size={20} color="inherit" />
@@ -343,7 +345,7 @@ ${order.images
                         handleStatusUpdate(selectedOrder._id, "completed")
                       }
                       disabled={loadingStatusId === selectedOrder._id}
-                      className="flex-1 bg-green-500 hover:bg-green-600 text-black py-2 rounded-xl font-medium transition flex justify-center items-center gap-2"
+                      className="flex-1 min-w-[120px] bg-green-500 hover:bg-green-600 text-black py-2.5 sm:py-2 rounded-lg sm:rounded-xl font-medium transition flex justify-center items-center gap-2 text-sm sm:text-base"
                     >
                       {loadingStatusId === selectedOrder._id ? (
                         <CircularProgress size={20} color="inherit" />
@@ -358,7 +360,7 @@ ${order.images
                     onClick={() =>
                       handleStatusUpdate(selectedOrder._id, "cancelled")
                     }
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl flex items-center justify-center gap-2 transition"
+                    className="flex-1 min-w-[120px] bg-red-500 hover:bg-red-600 text-white py-2.5 sm:py-2 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 transition text-sm sm:text-base"
                   >
                     <FiXCircle /> Cancel
                   </button>
@@ -366,7 +368,7 @@ ${order.images
                   {/* DOWNLOAD BUTTON */}
                   <button
                     onClick={() => downloadOrder(selectedOrder)}
-                    className="flex-1 bg-[#E6C2A1] hover:bg-[#ddb08a] text-black py-2 rounded-xl flex items-center justify-center gap-2 font-medium transition"
+                    className="flex-1 min-w-[120px] bg-[#E6C2A1] hover:bg-[#ddb08a] text-black py-2.5 sm:py-2 rounded-lg sm:rounded-xl flex items-center justify-center gap-2 font-medium transition text-sm sm:text-base"
                   >
                     <FiDownload /> Download Order
                   </button>

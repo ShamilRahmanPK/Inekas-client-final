@@ -36,9 +36,9 @@ function Navbar() {
             <span className="hover:text-[#E6C2A1] transition-colors duration-300">Sessions ▾</span>
             {openSession && (
               <ul className="absolute top-full left-0 bg-white/80 backdrop-blur-md shadow-lg rounded-md w-64 py-2 z-50">
-                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-800 transition-colors duration-200">Newborn</li>
-                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-800 transition-colors duration-200">Kids Photography</li>
-                <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-800 transition-colors duration-200">Family Session</li>
+                <li onClick={() => navigate("/newborn")} className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-800 transition-colors duration-200">Newborn</li>
+                <li onClick={() => navigate("/kids-photography")} className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-800 transition-colors duration-200">Kids Photography</li>
+                <li onClick={() => navigate("/family-session")} className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-800 transition-colors duration-200">Family Session</li>
               </ul>
             )}
           </li>
@@ -64,15 +64,15 @@ function Navbar() {
             )}
           </li>
 
-          <li className="cursor-pointer relative group">
+          <li onClick={() => navigate("/maternity")} className="cursor-pointer relative group">
             <span className="hover:text-[#E6C2A1] transition-colors duration-300">Maternity</span>
             <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-[#E6C2A1] group-hover:w-full transition-all duration-300"></span>
           </li>
-          <li className="cursor-pointer relative group">
+          <li onClick={() => navigate("/cake-smash")} className="cursor-pointer relative group">
             <span className="hover:text-[#E6C2A1] transition-colors duration-300">Cake Smash</span>
             <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-[#E6C2A1] group-hover:w-full transition-all duration-300"></span>
           </li>
-          <li className="cursor-pointer relative group">
+          <li onClick={() => navigate("/contact")} className="cursor-pointer relative group">
             <span className="hover:text-[#E6C2A1] transition-colors duration-300">Contact</span>
             <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-[#E6C2A1] group-hover:w-full transition-all duration-300"></span>
           </li>
@@ -100,9 +100,9 @@ function Navbar() {
             <details className="group [&_summary::-webkit-details-marker]:hidden">
               <summary className="cursor-pointer py-1">Sessions</summary>
               <ul className="pl-4 mt-2 flex flex-col gap-2">
-                <li>Newborn</li>
-                <li>Kids Photography</li>
-                <li>Family Session</li>
+                <li onClick={() => { navigate("/newborn"); setMobileMenuOpen(false); }}>Newborn</li>
+                <li onClick={() => { navigate("/kids-photography"); setMobileMenuOpen(false); }}>Kids Photography</li>
+                <li onClick={() => { navigate("/family-session"); setMobileMenuOpen(false); }}>Family Session</li>
               </ul>
             </details>
           </li>
@@ -119,9 +119,9 @@ function Navbar() {
             </details>
           </li>
 
-          <li>Maternity</li>
-          <li>Cake Smash</li>
-          <li>Contact</li>
+          <li onClick={() => { navigate("/maternity"); setMobileMenuOpen(false); }}>Maternity</li>
+          <li onClick={() => { navigate("/cake-smash"); setMobileMenuOpen(false); }}>Cake Smash</li>
+          <li onClick={() => { navigate("/contact"); setMobileMenuOpen(false); }}>Contact</li>
         </ul>
       )}
     </nav>

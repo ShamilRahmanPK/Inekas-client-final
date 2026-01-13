@@ -14,7 +14,9 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import StripePayment from "../components/StripePayment";
+import OrderSuccessModal from "../components/OrderSuccessModal";
 import { addStandardPrintApi } from "../services/allAPI";
+import { validateCheckoutForm, sanitizeInput } from "../utils/validation";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -52,6 +54,9 @@ export default function Checkout() {
   const [promoError, setPromoError] = useState("");
   const [currentTotals, setCurrentTotals] = useState(totals);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [successSubMessage, setSuccessSubMessage] = useState("");
 
   // Redirect if no uploaded images
   useEffect(() => {
@@ -60,11 +65,12 @@ export default function Checkout() {
     }
   }, [uploadedImages, navigate]);
 
-  // Handle input change
+  // Handle input change with sanitization
   const handleInputChange = (field, value) => {
+    const sanitizedValue = sanitizeInput(value);
     setDeliveryAddress((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: sanitizedValue,
     }));
     if (formErrors[field]) {
       setFormErrors((prev) => ({ ...prev, [field]: "" }));
@@ -87,30 +93,9 @@ export default function Checkout() {
     };
   }, [uploadedImages]);
 
-  // Form validation
+  // Form validation using utility
   const validateForm = () => {
-    const errors = {};
-    if (!deliveryAddress.fullName.trim())
-      errors.fullName = "Full name is required";
-    if (!deliveryAddress.phoneNumber.trim()) {
-      errors.phoneNumber = "Phone number is required";
-    } else if (!/^\+?[\d\s-()]+$/.test(deliveryAddress.phoneNumber)) {
-      errors.phoneNumber = "Invalid phone number format";
-    }
-    if (!deliveryAddress.email.trim()) {
-      errors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(deliveryAddress.email)) {
-      errors.email = "Invalid email format";
-    }
-    if (!deliveryAddress.addressLine1.trim())
-      errors.addressLine1 = "Address is required";
-    if (!deliveryAddress.city.trim()) errors.city = "City is required";
-    if (!deliveryAddress.state.trim())
-      errors.state = "State/Province is required";
-    if (!deliveryAddress.zipCode.trim())
-      errors.zipCode = "ZIP/Postal code is required";
-    if (!deliveryAddress.country.trim()) errors.country = "Country is required";
-
+    const errors = validateCheckoutForm(deliveryAddress);
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -215,11 +200,30 @@ export default function Checkout() {
 
       console.log("Order saved:", res.data);
 
-      alert("Order placed successfully!");
-      navigate("/");
+      // Show success modal instead of alert
+      setSuccessMessage("Order Placed Successfully!");
+      setSuccessSubMessage(
+        paymentMethod === "cash_on_delivery"
+          ? "Your order has been confirmed. Pay cash on delivery!"
+          : "Thank you for your payment. We'll process your order shortly!"
+      );
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Checkout error:", error);
-      alert("Failed to place order");
+      
+      // Handle rate limiting errors
+      if (error.response?.status === 429) {
+        setSuccessMessage("Too Many Requests");
+        setSuccessSubMessage("You've submitted too many orders. Please try again later.");
+      } else if (error.response?.status === 400) {
+        // Validation errors from backend
+        setSuccessMessage("Invalid Information");
+        setSuccessSubMessage(error.response?.data?.message || "Please check your information and try again.");
+      } else {
+        setSuccessMessage("Order Failed");
+        setSuccessSubMessage("Something went wrong. Please try again.");
+      }
+      setShowSuccessModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -235,6 +239,15 @@ export default function Checkout() {
 
     if (paper === "Glossy") price += 2;
     return price;
+  };
+
+  // Handle success modal close
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    // Navigate to home after closing modal
+    setTimeout(() => {
+      navigate("/");
+    }, 300);
   };
 
   // Handle card payment success
@@ -261,14 +274,15 @@ export default function Checkout() {
       body: formData,
     });
 
-    alert("Payment successful!");
-    navigate("/");
+    setSuccessMessage("Payment Successful!");
+    setSuccessSubMessage("Your order has been confirmed. Thank you for shopping with us!");
+    setShowSuccessModal(true);
   };
 
   const handlePaymentError = (error) => {
-    alert(
-      "Payment failed. Please try again or choose a different payment method."
-    );
+    setSuccessMessage("Payment Failed");
+    setSuccessSubMessage("Please try again or choose a different payment method.");
+    setShowSuccessModal(true);
     setShowPaymentForm(false);
   };
 
@@ -454,13 +468,18 @@ export default function Checkout() {
                     onChange={(e) =>
                       handleInputChange("phoneNumber", e.target.value)
                     }
-                    placeholder="+971 XX XXX XXXX"
+                    placeholder="+971 50 123 4567"
                     className={`w-full px-4 py-3 rounded-lg bg-white/5 border ${
                       formErrors.phoneNumber
                         ? "border-red-500"
                         : "border-white/10"
                     } text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] transition-all`}
                   />
+                  {!formErrors.phoneNumber && (
+                    <p className="text-gray-500 text-xs mt-1">
+                      Include country code (e.g., +971 for UAE)
+                    </p>
+                  )}
                   {formErrors.phoneNumber && (
                     <p className="error-message text-red-500 text-xs mt-1 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
@@ -990,6 +1009,14 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <OrderSuccessModal
+        isOpen={showSuccessModal}
+        onClose={handleSuccessModalClose}
+        message={successMessage}
+        subMessage={successSubMessage}
+      />
     </div>
   );
 }

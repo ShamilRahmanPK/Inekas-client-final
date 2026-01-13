@@ -7,6 +7,12 @@ import StandardPhotoUpload from './pages/StandardPhotoUpload';
 import Checkout from './pages/Checkout';
 import AdminHome from './pages/admin/adminHome';
 import ManageOrders from './pages/admin/ManageOrders';
+import Newborn from './pages/Newborn';
+import KidsPhotography from './pages/KidsPhotography';
+import FamilySession from './pages/FamilySession';
+import Maternity from './pages/Maternity';
+import CakeSmash from './pages/CakeSmash';
+import Contact from './pages/Contact';
 
 function App() {
   return (
@@ -19,6 +25,12 @@ function App() {
           <Route path='/checkout' element={<Checkout/>} />
           <Route path='/admin/home' element={<AdminHome/>} />
           <Route path='/admin/manageOrders' element={<ManageOrders/>} />
+          <Route path='/newborn' element={<Newborn/>} />
+          <Route path='/kids-photography' element={<KidsPhotography/>} />
+          <Route path='/family-session' element={<FamilySession/>} />
+          <Route path='/maternity' element={<Maternity/>} />
+          <Route path='/cake-smash' element={<CakeSmash/>} />
+          <Route path='/contact' element={<Contact/>} />
         </Routes>
       </>
   );

@@ -12,6 +12,7 @@ import {
 } from "react-icons/md";
 import Cropper from "react-easy-crop";
 import Navbar from "../components/Navbar";
+import InfoModal from "../components/InfoModal";
 
 export default function StandardPhotoUpload() {
   const navigate = useNavigate();
@@ -32,6 +33,9 @@ export default function StandardPhotoUpload() {
   const [rotation, setRotation] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [infoMessage, setInfoMessage] = useState("");
+  const [infoType, setInfoType] = useState("info");
 
   const sizes = ["10x15", "13x18", "15x21", "20x25", "20x30"];
   const papers = ["Luster", "Glossy"];
@@ -253,13 +257,17 @@ export default function StandardPhotoUpload() {
 
 const handleNext = () => {
   if (uploadedImages.length === 0) {
-    alert("Please upload at least one photo");
+    setInfoMessage("Please upload at least one photo before proceeding.");
+    setInfoType("warning");
+    setShowInfoModal(true);
     return;
   }
 
   const allCropped = uploadedImages.every((img) => img.cropped);
   if (!allCropped) {
-    alert("Please crop all images before proceeding");
+    setInfoMessage("Please crop all images before proceeding to checkout.");
+    setInfoType("warning");
+    setShowInfoModal(true);
     return;
   }
 
@@ -867,6 +875,14 @@ const handleNext = () => {
           </div>
         </div>
       </div>
+
+      {/* Info Modal */}
+      <InfoModal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        message={infoMessage}
+        type={infoType}
+      />
     </div>
   );
 }

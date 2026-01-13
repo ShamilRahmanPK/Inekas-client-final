@@ -1,2 +1,2 @@
-const SERVER_BASE_URL = "http://localhost:4000"
+const SERVER_BASE_URL = "https://inekas-server-final.onrender.com"
 export default SERVER_BASE_URL
