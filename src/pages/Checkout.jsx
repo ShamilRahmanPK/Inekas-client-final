@@ -210,15 +210,20 @@ export default function Checkout() {
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Checkout error:", error);
-      
+
       // Handle rate limiting errors
       if (error.response?.status === 429) {
         setSuccessMessage("Too Many Requests");
-        setSuccessSubMessage("You've submitted too many orders. Please try again later.");
+        setSuccessSubMessage(
+          "You've submitted too many orders. Please try again later."
+        );
       } else if (error.response?.status === 400) {
         // Validation errors from backend
         setSuccessMessage("Invalid Information");
-        setSuccessSubMessage(error.response?.data?.message || "Please check your information and try again.");
+        setSuccessSubMessage(
+          error.response?.data?.message ||
+            "Please check your information and try again."
+        );
       } else {
         setSuccessMessage("Order Failed");
         setSuccessSubMessage("Something went wrong. Please try again.");
@@ -275,13 +280,17 @@ export default function Checkout() {
     });
 
     setSuccessMessage("Payment Successful!");
-    setSuccessSubMessage("Your order has been confirmed. Thank you for shopping with us!");
+    setSuccessSubMessage(
+      "Your order has been confirmed. Thank you for shopping with us!"
+    );
     setShowSuccessModal(true);
   };
 
   const handlePaymentError = (error) => {
     setSuccessMessage("Payment Failed");
-    setSuccessSubMessage("Please try again or choose a different payment method.");
+    setSuccessSubMessage(
+      "Please try again or choose a different payment method."
+    );
     setShowSuccessModal(true);
     setShowPaymentForm(false);
   };
@@ -667,95 +676,75 @@ export default function Checkout() {
             </motion.div>
 
             {/* Promo Code Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white/5 backdrop-blur-xl rounded-xl shadow-lg p-6 border border-white/10"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#E6C2A1] to-[#d4ac88] rounded-lg flex items-center justify-center">
-                  <Package className="w-5 h-5 text-black" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-[#E6C2A1]">
-                    Promo Code
-                  </h2>
-                  <p className="text-sm text-gray-400">
-                    Have a discount code? Apply it here
-                  </p>
-                </div>
-              </div>
+            <div className="space-y-3">
+  <div className="flex flex-col sm:flex-row gap-3">
+    <input
+      type="text"
+      value={promoCodeInput}
+      onChange={(e) => {
+        setPromoCodeInput(e.target.value.toUpperCase());
+        setPromoError("");
+      }}
+      placeholder="Enter promo code"
+      className="flex-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] transition-all uppercase"
+    />
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={handleApplyPromo}
+      disabled={isApplyingPromo}
+      className={`w-full sm:w-auto px-6 py-3 rounded-lg font-semibold transition-all ${
+        isApplyingPromo
+          ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+          : "bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black shadow-lg"
+      }`}
+    >
+      {isApplyingPromo ? (
+        <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      ) : (
+        "Apply"
+      )}
+    </motion.button>
+  </div>
 
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={promoCodeInput}
-                    onChange={(e) => {
-                      setPromoCodeInput(e.target.value.toUpperCase());
-                      setPromoError("");
-                    }}
-                    placeholder="Enter promo code"
-                    className="flex-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] transition-all uppercase"
-                  />
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleApplyPromo}
-                    disabled={isApplyingPromo}
-                    className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                      isApplyingPromo
-                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black shadow-lg"
-                    }`}
-                  >
-                    {isApplyingPromo ? (
-                      <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      "Apply"
-                    )}
-                  </motion.button>
-                </div>
+  {promoError && (
+    <motion.p
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="text-red-500 text-sm flex items-center gap-1"
+    >
+      <AlertCircle className="w-4 h-4" />
+      {promoError}
+    </motion.p>
+  )}
 
-                {promoError && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-red-500 text-sm flex items-center gap-1"
-                  >
-                    <AlertCircle className="w-4 h-4" />
-                    {promoError}
-                  </motion.p>
-                )}
+  {promoApplied && (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 flex items-center gap-2"
+    >
+      <CheckCircle className="w-5 h-5 text-emerald-400" />
+      <span className="text-emerald-400 text-sm font-semibold">
+        Promo code applied successfully!
+      </span>
+    </motion.div>
+  )}
 
-                {promoApplied && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 flex items-center gap-2"
-                  >
-                    <CheckCircle className="w-5 h-5 text-emerald-400" />
-                    <span className="text-emerald-400 text-sm font-semibold">
-                      Promo code applied successfully!
-                    </span>
-                  </motion.div>
-                )}
+  <div className="bg-gradient-to-r from-[#E6C2A1]/10 to-transparent border-l-4 border-[#E6C2A1] rounded-lg p-4">
+    <p className="text-sm text-gray-300 mb-2">
+      <span className="font-semibold text-[#E6C2A1]">
+        Try these codes:
+      </span>
+    </p>
+    <div className="space-y-1 text-xs text-gray-400">
+      <p>• SAVE10 - Get 10% off</p>
+      <p>• SAVE15 - Get 15% off</p>
+      <p>• FIRSTORDER - Get 25% off your first order</p>
+    </div>
+  </div>
+</div>
 
-                <div className="bg-gradient-to-r from-[#E6C2A1]/10 to-transparent border-l-4 border-[#E6C2A1] rounded-lg p-4">
-                  <p className="text-sm text-gray-300 mb-2">
-                    <span className="font-semibold text-[#E6C2A1]">
-                      Try these codes:
-                    </span>
-                  </p>
-                  <div className="space-y-1 text-xs text-gray-400">
-                    <p>• SAVE10 - Get 10% off</p>
-                    <p>• SAVE15 - Get 15% off</p>
-                    <p>• FIRSTORDER - Get 25% off your first order</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
 
             {/* Payment Method Section */}
             <motion.div

@@ -5,7 +5,16 @@ import {
   useAnimation,
   useInView,
 } from "framer-motion";
-import { FiChevronDown, FiChevronUp, FiPhoneCall, FiMail, FiCamera, FiHeart, FiStar, FiCheck } from "react-icons/fi";
+import {
+  FiChevronDown,
+  FiChevronUp,
+  FiPhoneCall,
+  FiMail,
+  FiCamera,
+  FiHeart,
+  FiStar,
+  FiCheck,
+} from "react-icons/fi";
 import NavBar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -16,6 +25,7 @@ import birthdayImg from "../assets/4x4-prev.jpg";
 import outdoorImg from "../assets/4x4-prev.jpg";
 import productImg from "../assets/4x4-prev.jpg";
 import defaultImg from "../assets/4x4-prev.jpg";
+import { Link } from "react-router";
 
 const galleryImages = [
   weddingImg,
@@ -61,7 +71,8 @@ function Home() {
       shortTitle: "Newborn",
       description:
         "Capture the precious first moments with gentle, safe, and creative newborn photography sessions.",
-      image: "https://images.pexels.com/photos/9252838/pexels-photo-9252838.jpeg",
+      image:
+        "https://images.pexels.com/photos/9252838/pexels-photo-9252838.jpeg",
       price: "From $299",
       features: ["Safe & Gentle", "Studio Props", "Digital Gallery"],
     },
@@ -70,7 +81,8 @@ function Home() {
       shortTitle: "Maternity",
       description:
         "Celebrate the beauty of motherhood with elegant maternity portraits in stunning natural settings.",
-      image: "https://images.pexels.com/photos/2994029/pexels-photo-2994029.jpeg",
+      image:
+        "https://images.pexels.com/photos/2994029/pexels-photo-2994029.jpeg",
       price: "From $249",
       features: ["Outdoor/Studio", "Wardrobe Options", "Partner Shots"],
     },
@@ -79,7 +91,8 @@ function Home() {
       shortTitle: "Cake Smash",
       description:
         "Make their first birthday unforgettable with fun, colorful cake smash photography sessions.",
-      image: "https://images.pexels.com/photos/14197884/pexels-photo-14197884.jpeg",
+      image:
+        "https://images.pexels.com/photos/14197884/pexels-photo-14197884.jpeg",
       price: "From $199",
       features: ["Custom Setup", "Fun Themes", "Cleanup Included"],
     },
@@ -88,7 +101,8 @@ function Home() {
       shortTitle: "Family",
       description:
         "Preserve your family's bond with beautifully composed portraits perfect for any occasion.",
-      image: "https://images.pexels.com/photos/5416619/pexels-photo-5416619.jpeg",
+      image:
+        "https://images.pexels.com/photos/5416619/pexels-photo-5416619.jpeg",
       price: "From $279",
       features: ["All Ages Welcome", "Location Choice", "Print Packages"],
     },
@@ -162,18 +176,19 @@ function Home() {
 
             <ScrollAnimatedContent delay={0.3}>
               <p className="text-lg sm:text-xl text-[#D4D4D4] mb-8 leading-relaxed max-w-2xl">
-                From newborns and family portraits to maternity and milestone celebrations, 
-                we create timeless memories with precision, creativity, and heart.
+                From newborns and family portraits to maternity and milestone
+                celebrations, we create timeless memories with precision,
+                creativity, and heart.
               </p>
             </ScrollAnimatedContent>
 
             <ScrollAnimatedContent delay={0.4}>
-              <div className="flex flex-wrap gap-4 mb-12">
+              <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <motion.a
                   href="tel:+971XXXXXXXXX"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-2 bg-[#E6C2A1] text-black font-semibold py-3.5 px-8 rounded-lg shadow-lg hover:bg-[#d4ac88] transition-all"
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#E6C2A1] text-black font-semibold py-3.5 rounded-lg shadow-lg hover:bg-[#d4ac88] transition-all"
                 >
                   <FiPhoneCall className="text-lg" />
                   Call Us
@@ -182,10 +197,17 @@ function Home() {
                 <motion.button
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-transparent border-2 border-[#E6C2A1] text-[#E6C2A1] font-semibold py-3.5 px-8 rounded-lg hover:bg-[#E6C2A1] hover:text-black transition-all"
+                  onClick={() => {
+                    const element = document.getElementById("packages");
+                    if (element) {
+                      element.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
+                  className="flex-1 flex items-center justify-center border-2 border-[#E6C2A1] text-[#E6C2A1] font-semibold py-3.5 rounded-lg hover:bg-[#E6C2A1] hover:text-black transition-all"
                 >
                   View Packages
                 </motion.button>
+                <div className="flex-1 flex"></div>
               </div>
             </ScrollAnimatedContent>
 
@@ -196,7 +218,9 @@ function Home() {
                   <div key={index} className="flex flex-col">
                     <div className="flex items-center gap-2 text-3xl font-bold text-[#E6C2A1] mb-1">
                       {stat.number}
-                      {stat.icon && <span className="text-xl">{stat.icon}</span>}
+                      {stat.icon && (
+                        <span className="text-xl">{stat.icon}</span>
+                      )}
                     </div>
                     <div className="text-sm text-[#D4D4D4]">{stat.label}</div>
                   </div>
@@ -208,20 +232,22 @@ function Home() {
       </div>
 
       {/* SERVICES SECTION - MODERN CARDS */}
-      <div className="w-full bg-[#0f0f0f] py-20 md:py-32">
+      <div id="packages" className="w-full bg-[#0f0f0f] py-20 md:py-32">
         <div className="max-w-7xl mx-auto px-6">
           <ScrollAnimatedContent>
             <div className="text-center mb-16">
               <div className="inline-flex items-center gap-2 bg-[#E6C2A1]/10 border border-[#E6C2A1]/30 px-4 py-2 rounded-full mb-4">
                 <FiCamera className="text-[#E6C2A1]" />
-                <span className="text-[#E6C2A1] text-sm font-medium">Our Services</span>
+                <span className="text-[#E6C2A1] text-sm font-medium">
+                  Our Services
+                </span>
               </div>
               <h2 className="text-4xl sm:text-5xl font-bold text-[#E6C2A1] mb-6">
                 Specialized Photography Sessions
               </h2>
               <p className="text-lg text-[#D4D4D4] max-w-3xl mx-auto">
-                Comprehensive photography packages tailored to celebrate every precious moment 
-                with creativity and care.
+                Comprehensive photography packages tailored to celebrate every
+                precious moment with creativity and care.
               </p>
             </div>
           </ScrollAnimatedContent>
@@ -246,7 +272,7 @@ function Home() {
                       transition={{ duration: 0.4 }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                    
+
                     {/* Price Badge */}
                     <div className="absolute top-4 right-4 bg-[#E6C2A1] text-black px-4 py-2 rounded-full font-semibold text-sm">
                       {service.price}
@@ -265,8 +291,14 @@ function Home() {
                     {/* Features */}
                     <div className="space-y-2 mb-4">
                       {service.features.map((feature, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-sm text-[#D4D4D4]">
-                          <FiCheck className="text-[#E6C2A1] flex-shrink-0" size={16} />
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 text-sm text-[#D4D4D4]"
+                        >
+                          <FiCheck
+                            className="text-[#E6C2A1] flex-shrink-0"
+                            size={16}
+                          />
                           <span>{feature}</span>
                         </div>
                       ))}
@@ -277,7 +309,9 @@ function Home() {
                       className="text-[#E6C2A1] font-semibold text-sm flex items-center gap-2 group"
                     >
                       Learn More
-                      <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      <span className="group-hover:translate-x-1 transition-transform">
+                        →
+                      </span>
                     </motion.button>
                   </div>
                 </motion.div>
@@ -313,27 +347,32 @@ function Home() {
           {/* Scrolling Gallery */}
           <div className="relative overflow-hidden rounded-2xl border border-gray-800">
             {/* Gradients */}
-            <div className="pointer-events-none absolute left-0 top-0 h-full w-32 bg-gradient-to-r from-[#141414] to-transparent z-10" />
-            <div className="pointer-events-none absolute right-0 top-0 h-full w-32 bg-gradient-to-l from-[#141414] to-transparent z-10" />
+            <div className="pointer-events-none absolute left-0 top-0 h-full w-16 sm:w-24 bg-gradient-to-r from-[#141414] to-transparent z-10" />
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-16 sm:w-24 bg-gradient-to-l from-[#141414] to-transparent z-10" />
 
             <motion.div
-              className="flex gap-6 py-8 px-6"
-              animate={{ x: ["0%", "-50%"] }}
+              className="flex gap-4 sm:gap-6 py-6 sm:py-8 px-4 sm:px-6"
+              animate={{ x: [0, -1200] }}
               transition={{
                 repeat: Infinity,
                 ease: "linear",
-                duration: 30,
+                duration: 25,
               }}
             >
-              {[...galleryImages, ...galleryImages, ...galleryImages].map((img, index) => (
+              {[...galleryImages, ...galleryImages].map((img, index) => (
                 <div
                   key={index}
-                  className="min-w-[320px] h-[320px] rounded-xl overflow-hidden shadow-lg flex-shrink-0"
+                  className="
+          flex-shrink-0 rounded-xl overflow-hidden shadow-lg
+          w-[200px] h-[200px]
+          sm:w-[260px] sm:h-[260px]
+          lg:w-[320px] lg:h-[320px]
+        "
                 >
                   <img
                     src={img}
                     alt={`Gallery ${index + 1}`}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
                   />
                 </div>
               ))}
@@ -343,51 +382,61 @@ function Home() {
       </div>
 
       {/* TESTIMONIALS SECTION */}
-      <div className="w-full bg-[#0f0f0f] py-20 md:py-32">
-        <div className="max-w-7xl mx-auto px-6">
+      <div className="w-full bg-[#0f0f0f] py-14 md:py-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <ScrollAnimatedContent>
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 bg-[#E6C2A1]/10 border border-[#E6C2A1]/30 px-4 py-2 rounded-full mb-4">
+            <div className="text-center mb-10 sm:mb-16">
+              <div className="inline-flex items-center gap-2 bg-[#E6C2A1]/10 border border-[#E6C2A1]/30 px-3 py-1.5 rounded-full mb-4">
                 <FiHeart className="text-[#E6C2A1]" />
-                <span className="text-[#E6C2A1] text-sm font-medium">Testimonials</span>
+                <span className="text-[#E6C2A1] text-xs sm:text-sm font-medium">
+                  Testimonials
+                </span>
               </div>
-              <h2 className="text-4xl sm:text-5xl font-bold text-[#E6C2A1] mb-6">
+
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-[#E6C2A1] mb-4 sm:mb-6">
                 What Our Clients Say
               </h2>
-              <p className="text-lg text-[#D4D4D4] max-w-2xl mx-auto">
-                Don't just take our word for it – hear from families we've had the pleasure of working with
+
+              <p className="text-sm sm:text-lg text-[#D4D4D4] max-w-xl sm:max-w-2xl mx-auto">
+                Don't just take our word for it – hear from families we've had
+                the pleasure of working with
               </p>
             </div>
           </ScrollAnimatedContent>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Responsive grid: stacked on mobile, 3-per-row on md+ */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {testimonials.map((testimonial, index) => (
               <ScrollAnimatedContent key={index} delay={0.1 * index}>
-                <div className="bg-[#1a1a1a] p-8 rounded-2xl border border-gray-800 hover:border-[#E6C2A1]/50 transition-all h-full">
+                <div className="bg-[#1a1a1a] p-4 sm:p-5 md:p-6 rounded-xl md:rounded-2xl border border-gray-800 hover:border-[#E6C2A1]/50 transition-all h-full flex flex-col justify-between">
                   {/* Rating */}
-                  <div className="flex gap-1 mb-4">
+                  <div className="flex gap-1 mb-2 sm:mb-3">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <FiStar key={i} className="text-[#E6C2A1] fill-current" size={18} />
+                      <FiStar
+                        key={i}
+                        className="text-[#E6C2A1] fill-current"
+                        size={14} // smaller on mobile
+                      />
                     ))}
                   </div>
 
                   {/* Quote */}
-                  <p className="text-[#D4D4D4] mb-6 leading-relaxed italic">
+                  <p className="text-xs sm:text-sm md:text-base text-[#D4D4D4] mb-3 sm:mb-4 leading-relaxed italic">
                     "{testimonial.text}"
                   </p>
 
                   {/* Author */}
-                  <div className="flex items-center gap-4 pt-4 border-t border-gray-800">
+                  <div className="flex items-center gap-2 sm:gap-3 pt-2 sm:pt-3 border-t border-gray-800">
                     <img
                       src={testimonial.avatar}
                       alt={testimonial.name}
-                      className="w-12 h-12 rounded-full"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
                     />
                     <div>
-                      <div className="font-semibold text-white">
+                      <div className="text-xs sm:text-sm md:text-base font-semibold text-white">
                         {testimonial.name}
                       </div>
-                      <div className="text-sm text-[#D4D4D4]">
+                      <div className="text-[10px] sm:text-xs md:text-sm text-[#D4D4D4]">
                         {testimonial.role}
                       </div>
                     </div>
@@ -408,8 +457,8 @@ function Home() {
                 Creative Newborn Photography Themes
               </h2>
               <p className="text-lg text-[#D4D4D4] max-w-3xl mx-auto">
-                Explore our diverse selection of creative themes and distinctive add-ons 
-                designed to make your photos truly memorable
+                Explore our diverse selection of creative themes and distinctive
+                add-ons designed to make your photos truly memorable
               </p>
             </div>
           </ScrollAnimatedContent>
@@ -423,13 +472,17 @@ function Home() {
                 >
                   <div className="h-48 overflow-hidden">
                     <img
-                      src={[weddingImg, birthdayImg, outdoorImg, productImg][index]}
+                      src={
+                        [weddingImg, birthdayImg, outdoorImg, productImg][index]
+                      }
                       alt={theme}
                       className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                     />
                   </div>
                   <div className="p-6">
-                    <h3 className="text-xl font-bold text-white mb-2">{theme}</h3>
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      {theme}
+                    </h3>
                     <p className="text-sm text-[#D4D4D4]">
                       Beautiful themed setup with professional props
                     </p>
@@ -474,15 +527,18 @@ function Home() {
               <ScrollAnimatedContent delay={0.4}>
                 <div className="inline-flex items-center gap-2 bg-[#E6C2A1]/10 border border-[#E6C2A1]/30 px-4 py-2 rounded-full mb-6">
                   <FiHeart className="text-[#E6C2A1]" />
-                  <span className="text-[#E6C2A1] text-sm font-medium">Special Moments</span>
+                  <span className="text-[#E6C2A1] text-sm font-medium">
+                    Special Moments
+                  </span>
                 </div>
                 <h2 className="text-4xl sm:text-5xl font-bold text-[#E6C2A1] mb-6">
                   The Journey of Becoming a Mother
                 </h2>
                 <p className="text-lg text-[#D4D4D4] mb-8 leading-relaxed">
-                  Being a mother is one of life's most extraordinary experiences. At Inekas, 
-                  we're dedicated to capturing these cherished moments with artistry and passion, 
-                  creating timeless memories you'll treasure forever.
+                  Being a mother is one of life's most extraordinary
+                  experiences. At Inekas, we're dedicated to capturing these
+                  cherished moments with artistry and passion, creating timeless
+                  memories you'll treasure forever.
                 </p>
                 <motion.button
                   whileHover={{ scale: 1.05, y: -2 }}
@@ -501,20 +557,26 @@ function Home() {
       <div className="w-full bg-[#141414] py-20 md:py-32 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle at 2px 2px, #E6C2A1 1px, transparent 0)',
-            backgroundSize: '48px 48px'
-          }}></div>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 2px 2px, #E6C2A1 1px, transparent 0)",
+              backgroundSize: "48px 48px",
+            }}
+          ></div>
         </div>
 
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <ScrollAnimatedContent>
             <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
-              Ready to Create <span className="text-[#E6C2A1]">Beautiful Memories</span>?
+              Ready to Create{" "}
+              <span className="text-[#E6C2A1]">Beautiful Memories</span>?
             </h2>
             <p className="text-lg sm:text-xl text-[#D4D4D4] mb-10 max-w-2xl mx-auto">
-              Let's capture your special moments with creativity and care. 
-              Book your session today and preserve memories that will last a lifetime.
+              Let's capture your special moments with creativity and care. Book
+              your session today and preserve memories that will last a
+              lifetime.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <motion.button

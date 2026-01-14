@@ -209,10 +209,16 @@ export default function StandardPhotoUpload() {
 
     // Convert canvas to File
     return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        const file = new File([blob], editingImage.file.name, { type: "image/jpeg" });
-        resolve(file);
-      }, "image/jpeg", 0.95);
+      canvas.toBlob(
+        (blob) => {
+          const file = new File([blob], editingImage.file.name, {
+            type: "image/jpeg",
+          });
+          resolve(file);
+        },
+        "image/jpeg",
+        0.95
+      );
     });
   };
 
@@ -255,47 +261,45 @@ export default function StandardPhotoUpload() {
     }
   };
 
-const handleNext = () => {
-  if (uploadedImages.length === 0) {
-    setInfoMessage("Please upload at least one photo before proceeding.");
-    setInfoType("warning");
-    setShowInfoModal(true);
-    return;
-  }
+  const handleNext = () => {
+    if (uploadedImages.length === 0) {
+      setInfoMessage("Please upload at least one photo before proceeding.");
+      setInfoType("warning");
+      setShowInfoModal(true);
+      return;
+    }
 
-  const allCropped = uploadedImages.every((img) => img.cropped);
-  if (!allCropped) {
-    setInfoMessage("Please crop all images before proceeding to checkout.");
-    setInfoType("warning");
-    setShowInfoModal(true);
-    return;
-  }
+    const allCropped = uploadedImages.every((img) => img.cropped);
+    if (!allCropped) {
+      setInfoMessage("Please crop all images before proceeding to checkout.");
+      setInfoType("warning");
+      setShowInfoModal(true);
+      return;
+    }
 
-  // Create an array of data to pass
-  const imagesData = uploadedImages.map((img) => ({
-    file: img.croppedFile || img.file, 
-    size: img.size,
-    paper: img.paper,
-    quantity: img.quantity,
-    cropped: img.cropped,
-  }));
+    // Create an array of data to pass
+    const imagesData = uploadedImages.map((img) => ({
+      file: img.croppedFile || img.file,
+      size: img.size,
+      paper: img.paper,
+      quantity: img.quantity,
+      cropped: img.cropped,
+    }));
 
-  // Log to check
-  console.log("Images data for checkout:", imagesData);
-  console.log("Promo code:", promoCode);
-  console.log("Totals:", totals);
+    // Log to check
+    console.log("Images data for checkout:", imagesData);
+    console.log("Promo code:", promoCode);
+    console.log("Totals:", totals);
 
-  // Navigate to checkout page with state
-  navigate("/checkout", {
-    state: {
-      uploadedImages: imagesData,
-      promoCode,
-      totals,
-    },
-  });
-};
-
-
+    // Navigate to checkout page with state
+    navigate("/checkout", {
+      state: {
+        uploadedImages: imagesData,
+        promoCode,
+        totals,
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#141414]">
@@ -580,15 +584,20 @@ const handleNext = () => {
                             <input
                               type="number"
                               min="1"
-                              value={image.quantity}
+                              value={image.quantity === 0 ? "" : image.quantity} 
                               placeholder="Enter quantity"
-                              onChange={(e) =>
-                                updateImageConfig(
-                                  image.id,
-                                  "quantity",
-                                  parseInt(e.target.value) || 1
-                                )
-                              }
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === "") {
+                                  updateImageConfig(image.id, "quantity", 0);
+                                } else {
+                                  updateImageConfig(
+                                    image.id,
+                                    "quantity",
+                                    parseInt(val)
+                                  );
+                                }
+                              }}
                               className="w-full mt-2 px-3 py-2 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] bg-white/5 text-white placeholder-gray-500"
                             />
                           )}
@@ -802,28 +811,28 @@ const handleNext = () => {
               </div>
 
               {/* Bottom Controls */}
-              <div className="bg-white p-4 flex items-center justify-between border-t border-gray-200">
+              <div className="bg-white p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 border-t border-gray-200">
                 {/* Rotate Button */}
                 <button
                   onClick={() => setRotation((r) => (r + 90) % 360)}
-                  className="px-4 py-2 bg-black hover:bg-gray-800 text-gray-700 rounded-lg font-medium text-white transition-colors flex items-center gap-2"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-2.5 bg-black hover:bg-gray-800 text-white rounded-lg font-medium text-sm sm:text-base transition-colors flex items-center justify-center gap-2"
                 >
                   <MdRotate90DegreesCw className="w-5 h-5" />
                   Rotate 90°
                 </button>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                   <button
                     onClick={closeEditor}
-                    className="px-6 py-2 bg-white hover:bg-red-100 text-red-700 border border-gray-300 rounded-lg font-medium transition-colors"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-white hover:bg-red-100 text-red-700 border border-gray-300 rounded-lg font-medium text-sm sm:text-base transition-colors"
                   >
                     Cancel
                   </button>
 
                   <button
                     onClick={applyCrop}
-                    className="px-6 py-2 bg-white border border-gray-300 hover:bg-green-100 text-green-700 rounded-lg font-medium transition-colors"
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-white border border-gray-300 hover:bg-green-100 text-green-700 rounded-lg font-medium text-sm sm:text-base transition-colors"
                   >
                     Apply
                   </button>
@@ -836,15 +845,16 @@ const handleNext = () => {
 
       {/* Bottom Total Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#E6C2A1]/20 shadow-2xl z-40 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-[#E6C2A1]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2 sm:gap-0">
+            {/* Total Amount Section */}
+            <div className="space-y-1 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-2">
+                <span className="text-lg sm:text-2xl font-bold text-[#E6C2A1]">
                   Total Amount: AED {totals.total.toFixed(2)}
                 </span>
                 {totals.discount > 0 && (
-                  <span className="text-sm text-emerald-400 font-semibold">
+                  <span className="text-xs sm:text-sm text-emerald-400 font-semibold">
                     (Saved AED {totals.discount.toFixed(2)})
                   </span>
                 )}
@@ -854,6 +864,7 @@ const handleNext = () => {
               </div>
             </div>
 
+            {/* NEXT Button */}
             <button
               onClick={handleNext}
               disabled={
@@ -861,14 +872,14 @@ const handleNext = () => {
                 !uploadedImages.every((img) => img.cropped)
               }
               className={`
-                px-8 py-3 rounded-xl font-bold text-lg transition-all
-                ${
-                  uploadedImages.length === 0 ||
-                  !uploadedImages.every((img) => img.cropped)
-                    ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black shadow-xl shadow-[#E6C2A1]/30"
-                }
-              `}
+          mt-2 sm:mt-0 px-6 sm:px-8 py-2 sm:py-3 rounded-lg sm:rounded-xl font-bold text-sm sm:text-lg transition-all
+          ${
+            uploadedImages.length === 0 ||
+            !uploadedImages.every((img) => img.cropped)
+              ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+              : "bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black shadow-xl shadow-[#E6C2A1]/30"
+          }
+        `}
             >
               NEXT
             </button>
