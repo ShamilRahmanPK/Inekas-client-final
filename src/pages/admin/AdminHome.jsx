@@ -48,15 +48,15 @@ function AdminHome() {
     {
       title: "Add New Package",
       icon: <FiPlusCircle />,
-      link: "/admin/add-package",
+      link: "/admin/home",
     },
     {
       title: "Manage Orders",
       icon: <FiShoppingCart />,
       link: "/admin/manageOrders",
     },
-    { title: "Gallery Management", icon: <FiImage />, link: "/admin/gallery" },
-    { title: "Admin Settings", icon: <FiSettings />, link: "/admin/settings" },
+    { title: "Gallery Management", icon: <FiImage />, link: "/admin/home" },
+    { title: "Admin Settings", icon: <FiSettings />, link: "/admin/home" },
   ];
 
   return (
@@ -115,7 +115,7 @@ function AdminHome() {
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
           <Link
-            to="/admin"
+            to="/admin/home"
             className={`flex items-center gap-3 p-3 rounded-lg hover:bg-[#2a2a2a] transition
       ${sidebarOpen ? "justify-start" : "justify-center"}`}
           >

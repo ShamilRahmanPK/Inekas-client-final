@@ -25,7 +25,7 @@ import birthdayImg from "../assets/4x4-prev.jpg";
 import outdoorImg from "../assets/4x4-prev.jpg";
 import productImg from "../assets/4x4-prev.jpg";
 import defaultImg from "../assets/4x4-prev.jpg";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const galleryImages = [
   weddingImg,
@@ -63,6 +63,7 @@ function ScrollAnimatedContent({ children, delay = 0 }) {
 }
 
 function Home() {
+  const navigate = useNavigate();
   const [hoveredService, setHoveredService] = useState(null);
 
   const services = [
@@ -75,6 +76,7 @@ function Home() {
         "https://images.pexels.com/photos/9252838/pexels-photo-9252838.jpeg",
       price: "From $299",
       features: ["Safe & Gentle", "Studio Props", "Digital Gallery"],
+      path: "/newborn",
     },
     {
       title: "Maternity Sessions",
@@ -85,6 +87,7 @@ function Home() {
         "https://images.pexels.com/photos/2994029/pexels-photo-2994029.jpeg",
       price: "From $249",
       features: ["Outdoor/Studio", "Wardrobe Options", "Partner Shots"],
+      path: "/maternity",
     },
     {
       title: "Cake Smash",
@@ -95,6 +98,7 @@ function Home() {
         "https://images.pexels.com/photos/14197884/pexels-photo-14197884.jpeg",
       price: "From $199",
       features: ["Custom Setup", "Fun Themes", "Cleanup Included"],
+      path: "/cake-smash",
     },
     {
       title: "Family Portraits",
@@ -105,6 +109,7 @@ function Home() {
         "https://images.pexels.com/photos/5416619/pexels-photo-5416619.jpeg",
       price: "From $279",
       features: ["All Ages Welcome", "Location Choice", "Print Packages"],
+      path: "/family-session",
     },
   ];
 
@@ -306,6 +311,7 @@ function Home() {
 
                     <motion.button
                       whileHover={{ x: 4 }}
+                      onClick={()=> navigate(service.path)}
                       className="text-[#E6C2A1] font-semibold text-sm flex items-center gap-2 group"
                     >
                       Learn More
@@ -495,6 +501,7 @@ function Home() {
           <ScrollAnimatedContent delay={0.5}>
             <div className="text-center mt-12">
               <motion.button
+                onClick={() => navigate("/newborn")}
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 className="bg-[#E6C2A1] text-black font-semibold py-3.5 px-10 rounded-lg shadow-lg hover:bg-[#d4ac88] transition-all"
@@ -540,7 +547,9 @@ function Home() {
                   cherished moments with artistry and passion, creating timeless
                   memories you'll treasure forever.
                 </p>
+
                 <motion.button
+                  onClick={() => navigate("/maternity")}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   className="bg-[#E6C2A1] text-black font-semibold py-3.5 px-10 rounded-lg shadow-lg hover:bg-[#d4ac88] transition-all"
