@@ -17,6 +17,7 @@ import StripePayment from "../components/StripePayment";
 import OrderSuccessModal from "../components/OrderSuccessModal";
 import { addStandardPrintApi } from "../services/allAPI";
 import { validateCheckoutForm, sanitizeInput } from "../utils/validation";
+import SERVER_BASE_URL from "../services/serverUrl";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -57,6 +58,40 @@ export default function Checkout() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [successSubMessage, setSuccessSubMessage] = useState("");
+  const [serverReady, setServerReady] = useState(false);
+  const [serverWaking, setServerWaking] = useState(false);
+
+
+  // server starting
+  useEffect(() => {
+  let isMounted = true;
+
+  const wakeServer = async () => {
+    try {
+      setServerWaking(true);
+
+      await fetch(`${SERVER_BASE_URL}/health`, {
+        cache: "no-store",
+      });
+
+      if (isMounted) setServerReady(true);
+    } catch (err) {
+      if (isMounted) setServerReady(true);
+    } finally {
+      if (isMounted) setServerWaking(false);
+    }
+  };
+
+  wakeServer();
+
+  return () => {
+    isMounted = false;
+  };
+}, []);
+
+
+
+
 
   // Redirect if no uploaded images
   useEffect(() => {
@@ -137,102 +172,220 @@ export default function Checkout() {
     }
   };
 
+
   const handlePlaceOrder = async () => {
-    if (!validateForm()) return;
+  // -----------------------------------
+  // 1. Prevent premature submission
+  // -----------------------------------
+  if (serverWaking || !serverReady) {
+    setSuccessMessage("Please wait");
+    setSuccessSubMessage(
+      "Our server is waking up. This usually takes a few seconds."
+    );
+    setShowSuccessModal(true);
+    return;
+  }
 
-    setIsSubmitting(true);
+  if (isSubmitting) return;
+  if (!validateForm()) return;
 
-    try {
-      const formData = new FormData();
+  setIsSubmitting(true);
 
-      // Images
-      // -----------------------
-      uploadedImages.forEach((img, index) => {
-        formData.append("images", img.croppedFile || img.file);
-        formData.append(`items[${index}][size]`, img.size);
-        formData.append(`items[${index}][paper]`, img.paper);
-        formData.append(`items[${index}][quantity]`, img.quantity);
-        formData.append(`items[${index}][cropped]`, img.cropped);
+  try {
+    const formData = new FormData();
 
-        if (img.cropData) {
-          formData.append(
-            `items[${index}][cropData]`,
-            JSON.stringify(img.cropData)
-          );
-        }
-      });
+    // -----------------------------------
+    // 2. Images + item details
+    // -----------------------------------
+    uploadedImages.forEach((img, index) => {
+      formData.append("images", img.croppedFile || img.file);
+      formData.append(`items[${index}][size]`, img.size);
+      formData.append(`items[${index}][paper]`, img.paper);
+      formData.append(`items[${index}][quantity]`, img.quantity);
+      formData.append(`items[${index}][cropped]`, img.cropped);
 
-      // Address
-      // -----------------------
-      Object.entries(deliveryAddress).forEach(([key, value]) => {
-        formData.append(`deliveryAddress[${key}]`, value);
-      });
-
-      // Pricing
-      // -----------------------
-      formData.append("pricing[subtotal]", currentTotals.subtotal);
-      formData.append("pricing[discount]", currentTotals.discount);
-      formData.append("pricing[deliveryCharge]", currentTotals.deliveryCharge);
-      formData.append("pricing[total]", currentTotals.total);
-
-      // Payment
-      // -----------------------
-      formData.append("paymentMethod", paymentMethod);
-      formData.append("promoCode", promoCodeInput);
-
-      console.log("=== CHECKOUT FORM DATA ===");
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-      }
-
-      console.log("Uploaded Images:", uploadedImages);
-      console.log("Delivery Address:", deliveryAddress);
-      console.log("Pricing:", currentTotals);
-      console.log("Payment Method:", paymentMethod);
-      console.log("Promo Code:", promoCodeInput);
-
-      // api call
-      const res = await addStandardPrintApi(formData);
-
-      if (res.status !== 200 && res.status !== 201) {
-        throw new Error("Order failed");
-      }
-
-      console.log("Order saved:", res.data);
-
-      // Show success modal instead of alert
-      setSuccessMessage("Order Placed Successfully!");
-      setSuccessSubMessage(
-        paymentMethod === "cash_on_delivery"
-          ? "Your order has been confirmed. Pay cash on delivery!"
-          : "Thank you for your payment. We'll process your order shortly!"
-      );
-      setShowSuccessModal(true);
-    } catch (error) {
-      console.error("Checkout error:", error);
-
-      // Handle rate limiting errors
-      if (error.response?.status === 429) {
-        setSuccessMessage("Too Many Requests");
-        setSuccessSubMessage(
-          "You've submitted too many orders. Please try again later."
+      if (img.cropData) {
+        formData.append(
+          `items[${index}][cropData]`,
+          JSON.stringify(img.cropData)
         );
-      } else if (error.response?.status === 400) {
-        // Validation errors from backend
-        setSuccessMessage("Invalid Information");
-        setSuccessSubMessage(
-          error.response?.data?.message ||
-            "Please check your information and try again."
-        );
-      } else {
-        setSuccessMessage("Order Failed");
-        setSuccessSubMessage("Something went wrong. Please try again.");
       }
-      setShowSuccessModal(true);
-    } finally {
-      setIsSubmitting(false);
+    });
+
+    // -----------------------------------
+    // 3. Delivery address
+    // -----------------------------------
+    Object.entries(deliveryAddress).forEach(([key, value]) => {
+      formData.append(`deliveryAddress[${key}]`, value);
+    });
+
+    // -----------------------------------
+    // 4. Pricing
+    // -----------------------------------
+    formData.append("pricing[subtotal]", currentTotals.subtotal);
+    formData.append("pricing[discount]", currentTotals.discount);
+    formData.append("pricing[deliveryCharge]", currentTotals.deliveryCharge);
+    formData.append("pricing[total]", currentTotals.total);
+
+    // -----------------------------------
+    // 5. Payment
+    // -----------------------------------
+    formData.append("paymentMethod", paymentMethod);
+    formData.append("promoCode", promoCodeInput);
+
+    // -----------------------------------
+    // 6. API call
+    // -----------------------------------
+    const res = await addStandardPrintApi(formData);
+
+    if (!res || res.status !== 200 && res.status !== 201) {
+      throw new Error(res?.data?.message || "Order failed");
     }
-  };
+
+    // -----------------------------------
+    // 7. Success handling
+    // -----------------------------------
+    setSuccessMessage("Order Placed Successfully!");
+    setSuccessSubMessage(
+      paymentMethod === "cash_on_delivery"
+        ? "Your order has been confirmed. Pay cash on delivery!"
+        : "Thank you for your payment. We'll process your order shortly!"
+    );
+    setShowSuccessModal(true);
+
+  } catch (error) {
+    console.error("Checkout error:", error);
+
+    // -----------------------------------
+    // 8. Error handling
+    // -----------------------------------
+    if (error?.response?.status === 408) {
+      setSuccessMessage("Server is starting");
+      setSuccessSubMessage(
+        "Our server is waking up. Please try again in a few seconds."
+      );
+    } else if (error?.response?.status === 429) {
+      setSuccessMessage("Too Many Requests");
+      setSuccessSubMessage(
+        "You've submitted too many orders. Please try again later."
+      );
+    } else if (error?.response?.status === 400) {
+      setSuccessMessage("Invalid Information");
+      setSuccessSubMessage(
+        error?.response?.data?.message ||
+          "Please check your information and try again."
+      );
+    } else {
+      setSuccessMessage("Order Failed");
+      setSuccessSubMessage(
+        error?.message || "Something went wrong. Please try again."
+      );
+    }
+
+    setShowSuccessModal(true);
+
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
+  // const handlePlaceOrder = async () => {
+  //   if (!validateForm()) return;
+
+  //   setIsSubmitting(true);
+
+  //   try {
+  //     const formData = new FormData();
+
+  //     // Images
+  //     // -----------------------
+  //     uploadedImages.forEach((img, index) => {
+  //       formData.append("images", img.croppedFile || img.file);
+  //       formData.append(`items[${index}][size]`, img.size);
+  //       formData.append(`items[${index}][paper]`, img.paper);
+  //       formData.append(`items[${index}][quantity]`, img.quantity);
+  //       formData.append(`items[${index}][cropped]`, img.cropped);
+
+  //       if (img.cropData) {
+  //         formData.append(
+  //           `items[${index}][cropData]`,
+  //           JSON.stringify(img.cropData)
+  //         );
+  //       }
+  //     });
+
+  //     // Address
+  //     // -----------------------
+  //     Object.entries(deliveryAddress).forEach(([key, value]) => {
+  //       formData.append(`deliveryAddress[${key}]`, value);
+  //     });
+
+  //     // Pricing
+  //     // -----------------------
+  //     formData.append("pricing[subtotal]", currentTotals.subtotal);
+  //     formData.append("pricing[discount]", currentTotals.discount);
+  //     formData.append("pricing[deliveryCharge]", currentTotals.deliveryCharge);
+  //     formData.append("pricing[total]", currentTotals.total);
+
+  //     // Payment
+  //     // -----------------------
+  //     formData.append("paymentMethod", paymentMethod);
+  //     formData.append("promoCode", promoCodeInput);
+
+  //     console.log("=== CHECKOUT FORM DATA ===");
+  //     for (let pair of formData.entries()) {
+  //       console.log(pair[0], pair[1]);
+  //     }
+
+  //     console.log("Uploaded Images:", uploadedImages);
+  //     console.log("Delivery Address:", deliveryAddress);
+  //     console.log("Pricing:", currentTotals);
+  //     console.log("Payment Method:", paymentMethod);
+  //     console.log("Promo Code:", promoCodeInput);
+
+  //     // api call
+  //     const res = await addStandardPrintApi(formData);
+
+  //     if (res.status !== 200 && res.status !== 201) {
+  //       throw new Error("Order failed");
+  //     }
+
+  //     console.log("Order saved:", res.data);
+
+  //     // Show success modal instead of alert
+  //     setSuccessMessage("Order Placed Successfully!");
+  //     setSuccessSubMessage(
+  //       paymentMethod === "cash_on_delivery"
+  //         ? "Your order has been confirmed. Pay cash on delivery!"
+  //         : "Thank you for your payment. We'll process your order shortly!"
+  //     );
+  //     setShowSuccessModal(true);
+  //   } catch (error) {
+  //     console.error("Checkout error:", error);
+
+  //     // Handle rate limiting errors
+  //     if (error.response?.status === 429) {
+  //       setSuccessMessage("Too Many Requests");
+  //       setSuccessSubMessage(
+  //         "You've submitted too many orders. Please try again later."
+  //       );
+  //     } else if (error.response?.status === 400) {
+  //       // Validation errors from backend
+  //       setSuccessMessage("Invalid Information");
+  //       setSuccessSubMessage(
+  //         error.response?.data?.message ||
+  //           "Please check your information and try again."
+  //       );
+  //     } else {
+  //       setSuccessMessage("Order Failed");
+  //       setSuccessSubMessage("Something went wrong. Please try again.");
+  //     }
+  //     setShowSuccessModal(true);
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
 
   const getPricePerImage = (size, paper) => {
     let price = 5;
@@ -677,74 +830,73 @@ export default function Checkout() {
 
             {/* Promo Code Section */}
             <div className="space-y-3">
-  <div className="flex flex-col sm:flex-row gap-3">
-    <input
-      type="text"
-      value={promoCodeInput}
-      onChange={(e) => {
-        setPromoCodeInput(e.target.value.toUpperCase());
-        setPromoError("");
-      }}
-      placeholder="Enter promo code"
-      className="flex-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] transition-all uppercase"
-    />
-    <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={handleApplyPromo}
-      disabled={isApplyingPromo}
-      className={`w-full sm:w-auto px-6 py-3 rounded-lg font-semibold transition-all ${
-        isApplyingPromo
-          ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-          : "bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black shadow-lg"
-      }`}
-    >
-      {isApplyingPromo ? (
-        <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-      ) : (
-        "Apply"
-      )}
-    </motion.button>
-  </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={promoCodeInput}
+                  onChange={(e) => {
+                    setPromoCodeInput(e.target.value.toUpperCase());
+                    setPromoError("");
+                  }}
+                  placeholder="Enter promo code"
+                  className="flex-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] transition-all uppercase"
+                />
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleApplyPromo}
+                  disabled={isApplyingPromo}
+                  className={`w-full sm:w-auto px-6 py-3 rounded-lg font-semibold transition-all ${
+                    isApplyingPromo
+                      ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black shadow-lg"
+                  }`}
+                >
+                  {isApplyingPromo ? (
+                    <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  ) : (
+                    "Apply"
+                  )}
+                </motion.button>
+              </div>
 
-  {promoError && (
-    <motion.p
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="text-red-500 text-sm flex items-center gap-1"
-    >
-      <AlertCircle className="w-4 h-4" />
-      {promoError}
-    </motion.p>
-  )}
+              {promoError && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-red-500 text-sm flex items-center gap-1"
+                >
+                  <AlertCircle className="w-4 h-4" />
+                  {promoError}
+                </motion.p>
+              )}
 
-  {promoApplied && (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 flex items-center gap-2"
-    >
-      <CheckCircle className="w-5 h-5 text-emerald-400" />
-      <span className="text-emerald-400 text-sm font-semibold">
-        Promo code applied successfully!
-      </span>
-    </motion.div>
-  )}
+              {promoApplied && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 flex items-center gap-2"
+                >
+                  <CheckCircle className="w-5 h-5 text-emerald-400" />
+                  <span className="text-emerald-400 text-sm font-semibold">
+                    Promo code applied successfully!
+                  </span>
+                </motion.div>
+              )}
 
-  <div className="bg-gradient-to-r from-[#E6C2A1]/10 to-transparent border-l-4 border-[#E6C2A1] rounded-lg p-4">
-    <p className="text-sm text-gray-300 mb-2">
-      <span className="font-semibold text-[#E6C2A1]">
-        Try these codes:
-      </span>
-    </p>
-    <div className="space-y-1 text-xs text-gray-400">
-      <p>• SAVE10 - Get 10% off</p>
-      <p>• SAVE15 - Get 15% off</p>
-      <p>• FIRSTORDER - Get 25% off your first order</p>
-    </div>
-  </div>
-</div>
-
+              <div className="bg-gradient-to-r from-[#E6C2A1]/10 to-transparent border-l-4 border-[#E6C2A1] rounded-lg p-4">
+                <p className="text-sm text-gray-300 mb-2">
+                  <span className="font-semibold text-[#E6C2A1]">
+                    Try these codes:
+                  </span>
+                </p>
+                <div className="space-y-1 text-xs text-gray-400">
+                  <p>• SAVE10 - Get 10% off</p>
+                  <p>• SAVE15 - Get 15% off</p>
+                  <p>• FIRSTORDER - Get 25% off your first order</p>
+                </div>
+              </div>
+            </div>
 
             {/* Payment Method Section */}
             <motion.div
@@ -946,7 +1098,49 @@ export default function Checkout() {
                 </div>
               </div>
 
+              {/* payment with cold start issue solved */}
               <motion.button
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
+  onClick={handlePlaceOrder}
+  disabled={isSubmitting || showPaymentForm || serverWaking}
+  className={`
+    w-full py-4 rounded-xl font-bold text-lg transition-all
+    flex items-center justify-center gap-3
+    ${
+      isSubmitting || showPaymentForm || serverWaking
+        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+        : "bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black shadow-xl shadow-[#E6C2A1]/30"
+    }
+  `}
+>
+  {serverWaking ? (
+    <>
+      <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+      Waking server...
+    </>
+  ) : isSubmitting ? (
+    <>
+      <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+      Processing...
+    </>
+  ) : showPaymentForm ? (
+    <>
+      <CheckCircle className="w-5 h-5" />
+      Complete Payment Below
+    </>
+  ) : (
+    <>
+      <ShoppingBag className="w-5 h-5" />
+      {paymentMethod === "card_payment"
+        ? "Proceed to Payment"
+        : "Place Order"}
+    </>
+  )}
+</motion.button>
+
+
+              {/* <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handlePlaceOrder}
@@ -978,7 +1172,7 @@ export default function Checkout() {
                       : "Place Order"}
                   </>
                 )}
-              </motion.button>
+              </motion.button> */}
 
               <div className="mt-6 space-y-3">
                 <div className="flex items-center gap-2 text-sm text-gray-400">
@@ -998,6 +1192,12 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+      {serverWaking && (
+  <p className="text-xs text-gray-400 mt-2 text-center">
+    First request may take a few seconds while our server starts.
+  </p>
+)}
+
 
       {/* Success Modal */}
       <OrderSuccessModal
