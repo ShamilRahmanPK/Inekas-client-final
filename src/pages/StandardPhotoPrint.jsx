@@ -14,8 +14,8 @@ import {
 
 import img35x5 from "../assets/3.5x5-prev.webp";
 import img4x6 from "../assets/4x4-prev-f.jpeg";
-import img5x7 from "../assets/5x7-prev.jpg";
-import img8x10 from "../assets/8x10-prev.jpg";
+import img5x7 from "../assets/5x7-prev-f.jpeg";
+import img8x10 from "../assets/8x10-prev-f.jpeg";
 import img4x4 from "../assets/4x4-prev.jpg";
 import img8x8 from "../assets/8x8-prev.webp";
 import Navbar from "../components/Navbar";
@@ -146,12 +146,12 @@ export default function StandardPhotoPrint() {
             >
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#E6C2A1]/20 to-transparent rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+                <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl h-[400px]">
                   <motion.img
                     key={selectedSize}
                     src={previewImage}
                     alt={`${selectedSize} preview`}
-                    className="w-full h-[400px] object-contain rounded-lg"
+                    className="w-full h-full object-cover rounded-2xl"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.4 }}
@@ -264,7 +264,7 @@ export default function StandardPhotoPrint() {
 
               {/* Configuration Options */}
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-6 space-y-6">
-              {/* Promo Code */}
+                {/* Promo Code */}
                 <div>
                   <label className="text-[#E6C2A1] font-semibold mb-3 block">
                     Promo Code (Optional)
@@ -358,8 +358,6 @@ export default function StandardPhotoPrint() {
                       : "High-gloss finish for maximum vibrancy and depth"}
                   </p>
                 </div>
-
-                
               </div>
 
               {/* CTA Button */}
