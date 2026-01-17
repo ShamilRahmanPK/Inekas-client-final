@@ -289,7 +289,7 @@ export default function StandardPhotoPrint() {
           }
         `}
                       >
-                        {size === "15x21" && (
+                        {size === "16x21" && (
                           <span className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[8px] px-1 py-0.5 rounded-full font-bold shadow-lg">
                             POPULAR
                           </span>
