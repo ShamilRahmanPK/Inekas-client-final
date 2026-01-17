@@ -287,7 +287,7 @@ export default function StandardPhotoPrint() {
                     </button>
                   </div>
                 </div>
-                
+
                 {/* Size Selection */}
                 <div>
                   <label className="text-[#E6C2A1] font-semibold mb-3 block">
@@ -313,7 +313,7 @@ export default function StandardPhotoPrint() {
           }
         `}
                       >
-                        {size === "16x21" && (
+                        {size === "10x15" && (
                           <span className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[8px] px-1 py-0.5 rounded-full font-bold shadow-lg">
                             POPULAR
                           </span>
