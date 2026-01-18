@@ -13,7 +13,7 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-6 lg:px-10 flex justify-between items-center h-[55.56px]">
         {/* Logo */}
         <div className="flex items-center">
-          <img src={nav_logo} alt="Logo" className="w-36 lg:w-60" />
+          <img src={nav_logo} alt="Logo" className="w-30 lg:w-45" />
         </div>
 
         {/* Desktop Menu */}
@@ -44,7 +44,7 @@ function Navbar() {
             )}
           </li>
 
-          
+
           <li onClick={() => navigate("/about-us")} className="cursor-pointer relative group">
             <span className="hover:text-[#E6C2A1] transition-colors duration-300">About Us</span>
             <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-[#E6C2A1] group-hover:w-full transition-all duration-300"></span>
