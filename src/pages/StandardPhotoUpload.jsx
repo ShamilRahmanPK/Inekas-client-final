@@ -14,6 +14,7 @@ import { Cropper } from "react-advanced-cropper";
 import "react-advanced-cropper/dist/style.css";
 import Navbar from "../components/Navbar";
 import InfoModal from "../components/InfoModal";
+import { validateAndApplyPromo, getPricePerImage as getPrice } from "../utils/promoCodes";
 
 export default function StandardPhotoUpload() {
   const navigate = useNavigate();
@@ -32,6 +33,8 @@ export default function StandardPhotoUpload() {
   const [promoCode, setPromoCode] = useState(initialPromo);
   const [isDragging, setIsDragging] = useState(false);
   const [promoApplied, setPromoApplied] = useState(false);
+  const [appliedPromoDetails, setAppliedPromoDetails] = useState(null);
+  const [promoError, setPromoError] = useState("");
   const [editingImage, setEditingImage] = useState(null);
   const [rotation, setRotation] = useState(0);
   const [cropFrameFlipped, setCropFrameFlipped] = useState(false);
@@ -100,23 +103,28 @@ export default function StandardPhotoUpload() {
     return cropFrameFlipped ? 1 / ratio : ratio;
   };
 
-  const getPricePerImage = (size, paper) => {
-    let price = 1.25;
-    if (size === "10x15") price = 1.25;
-    if (size === "13x18") price = 2.50;
-    if (size === "16x21") price = 3.25;
-    if (size === "20x25") price = 5;
-    if (size === "20x30") price = 7;
-    if (paper === "Glossy") price += 2;
-    return price;
-  };
+  // Use imported price function
+  const getPricePerImage = getPrice;
 
   const calculateTotal = () => {
     const subtotal = uploadedImages.reduce((total, img) => {
       return total + getPricePerImage(img.size, img.paper) * img.quantity;
     }, 0);
     const deliveryCharge = 29;
-    const discount = promoApplied ? subtotal * 0.1 : 0;
+    
+    // Apply promo code discount if valid
+    let discount = 0;
+    if (appliedPromoDetails && promoCode) {
+      const result = validateAndApplyPromo(promoCode, uploadedImages, subtotal);
+      if (result.valid) {
+        discount = result.discount;
+      } else {
+        // Promo became invalid (e.g., quantity changed)
+        setAppliedPromoDetails(null);
+        setPromoError(result.message);
+      }
+    }
+    
     return {
       subtotal,
       deliveryCharge,
@@ -288,9 +296,32 @@ export default function StandardPhotoUpload() {
   };
 
   const handleApplyPromo = () => {
-    if (promoCode.trim()) {
+    if (!promoCode.trim()) {
+      setPromoError("Please enter a promo code");
+      return;
+    }
+    
+    setPromoError("");
+    
+    const subtotal = uploadedImages.reduce((total, img) => {
+      return total + getPricePerImage(img.size, img.paper) * img.quantity;
+    }, 0);
+    
+    const result = validateAndApplyPromo(promoCode, uploadedImages, subtotal);
+    
+    if (result.valid) {
+      setAppliedPromoDetails(result);
       setPromoApplied(true);
-      setTimeout(() => setPromoApplied(false), 3000);
+      setInfoMessage(result.message);
+      setInfoType("success");
+      setShowInfoModal(true);
+      setTimeout(() => setPromoApplied(false), 5000);
+    } else {
+      setPromoError(result.message);
+      setAppliedPromoDetails(null);
+      setInfoMessage(result.message);
+      setInfoType("error");
+      setShowInfoModal(true);
     }
   };
 
@@ -302,25 +333,29 @@ export default function StandardPhotoUpload() {
       return;
     }
 
-    // Create an array of data to pass
+    // Create an array of data to pass including crop data
     const imagesData = uploadedImages.map((img) => ({
       file: img.croppedFile || img.file,
+      croppedFile: img.croppedFile,
       size: img.size,
       paper: img.paper,
       quantity: img.quantity,
       cropped: img.cropped,
+      cropData: img.cropData,
     }));
 
     // Log to check
     console.log("Images data for checkout:", imagesData);
     console.log("Promo code:", promoCode);
+    console.log("Promo details:", appliedPromoDetails);
     console.log("Totals:", totals);
 
     // Navigate to checkout page with state
     navigate("/checkout", {
       state: {
         uploadedImages: imagesData,
-        promoCode,
+        promoCode: appliedPromoDetails ? promoCode : "", // Only pass if valid
+        appliedPromoDetails,
         totals,
       },
     });
@@ -740,27 +775,68 @@ export default function StandardPhotoUpload() {
             >
               <h3 className="font-bold text-[#E6C2A1] mb-4">Promo Code</h3>
               <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="Enter promo code"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  className="w-full px-4 py-2 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] bg-white/5 text-white placeholder-gray-500"
-                />
-                <button
-                  onClick={handleApplyPromo}
-                  className="w-full bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black py-2 rounded-lg font-semibold text-sm transition-all shadow-lg"
-                >
-                  APPLY
-                </button>
-                {promoApplied && (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter promo code"
+                    value={promoCode}
+                    onChange={(e) => {
+                      setPromoCode(e.target.value.toUpperCase());
+                      setPromoError("");
+                    }}
+                    disabled={!!appliedPromoDetails}
+                    className={`flex-1 px-4 py-2 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] bg-white/5 text-white placeholder-gray-500 uppercase ${
+                      appliedPromoDetails ? 'opacity-60 cursor-not-allowed' : ''
+                    }`}
+                  />
+                  {appliedPromoDetails ? (
+                    <button
+                      onClick={() => {
+                        setPromoCode("");
+                        setAppliedPromoDetails(null);
+                        setPromoError("");
+                      }}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm transition-all shadow-lg flex items-center gap-1"
+                    >
+                      <MdClose className="w-4 h-4" />
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleApplyPromo}
+                      className="px-6 py-2 bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black rounded-lg font-semibold text-sm transition-all shadow-lg"
+                    >
+                      APPLY
+                    </button>
+                  )}
+                </div>
+                
+                {promoError && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-emerald-400 text-xs flex items-center gap-1"
+                    className="text-red-400 text-xs flex items-center gap-1"
                   >
-                    <MdCheck className="w-4 h-4" />
-                    Promo code applied! 10% discount
+                    <MdInfoOutline className="w-4 h-4" />
+                    {promoError}
+                  </motion.div>
+                )}
+                
+                {appliedPromoDetails && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3"
+                  >
+                    <div className="text-emerald-400 text-xs flex items-center gap-1">
+                      <MdCheck className="w-4 h-4" />
+                      <span className="font-semibold">{appliedPromoDetails.message}</span>
+                    </div>
+                    {appliedPromoDetails.discountType === 'free_prints' && (
+                      <div className="text-emerald-300 text-[10px] mt-1">
+                        Saving you AED {totals.discount.toFixed(2)}!
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </div>

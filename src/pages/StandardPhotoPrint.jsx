@@ -269,23 +269,19 @@ export default function StandardPhotoPrint() {
                   <label className="text-[#E6C2A1] font-semibold mb-3 block">
                     Promo Code (Optional)
                   </label>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="text"
-                      placeholder="Enter code"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
-                      className="flex-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E6C2A1]"
-                    />
-                    <button
-                      onClick={() =>
-                        alert(`Promo code "${promoCode}" applied!`)
-                      }
-                      className="px-6 py-3 bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] rounded-lg font-semibold text-black transition-all shadow-lg shadow-[#E6C2A1]/30"
-                    >
-                      Apply
-                    </button>
-                  </div>
+                  <input
+                    type="text"
+                    placeholder="Enter code (will be validated during checkout)"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] uppercase"
+                  />
+                  {promoCode && (
+                    <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      Code "{promoCode}" will be applied at checkout
+                    </p>
+                  )}
                 </div>
 
                 {/* Size Selection */}

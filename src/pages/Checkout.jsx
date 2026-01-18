@@ -14,13 +14,74 @@ import {
   Plus,
   Minus,
   Upload,
+  Gift,
+  X,
 } from "lucide-react";
+import { MdClose } from "react-icons/md";
 import Navbar from "../components/Navbar";
 import StripePayment from "../components/StripePayment";
 import OrderSuccessModal from "../components/OrderSuccessModal";
 import { addStandardPrintApi } from "../services/allAPI";
 import { validateCheckoutForm, sanitizeInput } from "../utils/validation";
 import SERVER_BASE_URL from "../services/serverUrl";
+import { validateAndApplyPromo, getPromoCodesByType, getPricePerImage as getPrice } from "../utils/promoCodes";
+
+// Component to display available promo codes
+function AvailablePromoCodes({ uploadedImages }) {
+  const { percentageCodes, freePrintCodes } = getPromoCodesByType();
+  
+  // Calculate quantities by size for smart promo suggestions
+  const quantitiesBySize = uploadedImages.reduce((acc, img) => {
+    acc[img.size] = (acc[img.size] || 0) + img.quantity;
+    return acc;
+  }, {});
+
+  // Filter free print codes to show only relevant ones
+  const relevantFreePrintCodes = freePrintCodes.filter(promo => {
+    const totalForSize = quantitiesBySize[promo.rules.size] || 0;
+    // Show if user is close (within 10) or has met the requirement
+    return totalForSize >= promo.rules.minQuantity - 10;
+  });
+
+  return (
+    <div className="bg-gradient-to-r from-[#E6C2A1]/10 to-transparent border-l-4 border-[#E6C2A1] rounded-lg p-4">
+      <p className="text-sm text-gray-300 mb-2">
+        <span className="font-semibold text-[#E6C2A1]">
+          Available Promo Codes:
+        </span>
+      </p>
+      
+      {/* Percentage Discounts */}
+      <div className="space-y-1 text-xs text-gray-400 mb-3">
+        <p className="font-semibold text-[#E6C2A1]/80 text-[11px] uppercase tracking-wide">Percentage Off:</p>
+        {percentageCodes.map(promo => (
+          <p key={promo.code}>• {promo.code} - {promo.description}</p>
+        ))}
+      </div>
+
+      {/* Free Print Codes - Show relevant ones */}
+      {relevantFreePrintCodes.length > 0 && (
+        <div className="space-y-1 text-xs text-gray-400">
+          <p className="font-semibold text-[#E6C2A1]/80 text-[11px] uppercase tracking-wide flex items-center gap-1">
+            <Gift className="w-3 h-3" />
+            Free Print Offers:
+          </p>
+          {relevantFreePrintCodes.map(promo => {
+            const totalForSize = quantitiesBySize[promo.rules.size] || 0;
+            const isEligible = totalForSize >= promo.rules.minQuantity;
+            return (
+              <p key={promo.code} className={isEligible ? "text-emerald-400" : ""}>
+                • {promo.code} - {promo.description}
+                {!isEligible && ` (${promo.rules.minQuantity - totalForSize} more needed)`}
+                {isEligible && " ✓"}
+              </p>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -35,6 +96,7 @@ export default function Checkout() {
     total: 29,
   };
   const promoCode = location.state?.promoCode || "";
+  const initialPromoDetails = location.state?.appliedPromoDetails || null;
 
   // Form state
   const [deliveryAddress, setDeliveryAddress] = useState({
@@ -56,6 +118,10 @@ export default function Checkout() {
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const [promoApplied, setPromoApplied] = useState(!!promoCode);
   const [promoError, setPromoError] = useState("");
+  const [promoSuccess, setPromoSuccess] = useState(
+    initialPromoDetails ? initialPromoDetails.message : ""
+  );
+  const [appliedPromoDetails, setAppliedPromoDetails] = useState(initialPromoDetails);
   const [currentTotals, setCurrentTotals] = useState(initialTotals);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -146,33 +212,54 @@ export default function Checkout() {
     }
     setIsApplyingPromo(true);
     setPromoError("");
+    setPromoSuccess("");
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const validPromoCodes = {
-        SAVE10: 0.1,
-        SAVE15: 0.15,
-        SAVE20: 0.2,
-        FIRSTORDER: 0.25,
-      };
+      const result = validateAndApplyPromo(
+        promoCodeInput,
+        uploadedImages,
+        currentTotals.subtotal
+      );
 
-      const discountRate = validPromoCodes[promoCodeInput.toUpperCase()];
-      if (discountRate) {
-        const discount = currentTotals.subtotal * discountRate;
+      if (result.valid) {
         const newTotal =
-          currentTotals.subtotal + currentTotals.deliveryCharge - discount;
-        setCurrentTotals({ ...currentTotals, discount, total: newTotal });
+          currentTotals.subtotal + currentTotals.deliveryCharge - result.discount;
+        setCurrentTotals({ 
+          ...currentTotals, 
+          discount: result.discount, 
+          total: newTotal 
+        });
+        setAppliedPromoDetails(result);
+        setPromoSuccess(result.message);
         setPromoApplied(true);
-        setTimeout(() => setPromoApplied(false), 3000);
+        setTimeout(() => setPromoApplied(false), 5000);
       } else {
-        setPromoError("Invalid promo code");
+        setPromoError(result.message);
+        setAppliedPromoDetails(null);
       }
-    } catch {
+    } catch (error) {
       setPromoError("Failed to apply promo code");
+      setAppliedPromoDetails(null);
     } finally {
       setIsApplyingPromo(false);
     }
+  };
+
+  // Remove promo code
+  const handleRemovePromo = () => {
+    const newTotal = currentTotals.subtotal + currentTotals.deliveryCharge;
+    setCurrentTotals({
+      ...currentTotals,
+      discount: 0,
+      total: newTotal,
+    });
+    setPromoCodeInput("");
+    setAppliedPromoDetails(null);
+    setPromoSuccess("");
+    setPromoError("");
+    setPromoApplied(false);
   };
 
 
@@ -390,17 +477,8 @@ export default function Checkout() {
   //   }
   // };
 
-  const getPricePerImage = (size, paper) => {
-    let price = 1.25;
-    if (size === "10x15") price = 1.25;
-    else if (size === "13x18") price = 2.50;
-    else if (size === "16x21") price = 3.25;
-    else if (size === "20x25") price = 5;
-    else if (size === "20x30") price = 7;
-
-    if (paper === "Glossy") price += 2;
-    return price;
-  };
+  // Use imported price function
+  const getPricePerImage = getPrice;
 
   // Recalculate totals when quantities change
   const recalculateTotals = (images) => {
@@ -408,7 +486,22 @@ export default function Checkout() {
       return total + getPricePerImage(img.size, img.paper) * img.quantity;
     }, 0);
     const deliveryCharge = 29;
-    const discount = promoApplied ? subtotal * 0.1 : 0;
+    
+    // Recalculate discount if promo was applied
+    let discount = 0;
+    if (appliedPromoDetails && promoCodeInput) {
+      const result = validateAndApplyPromo(promoCodeInput, images, subtotal);
+      if (result.valid) {
+        discount = result.discount;
+        setAppliedPromoDetails(result);
+      } else {
+        // Promo no longer valid due to quantity change
+        setPromoError(result.message);
+        setAppliedPromoDetails(null);
+        setPromoCodeInput("");
+      }
+    }
+    
     const newTotals = {
       subtotal,
       deliveryCharge,
@@ -878,27 +971,43 @@ export default function Checkout() {
                   onChange={(e) => {
                     setPromoCodeInput(e.target.value.toUpperCase());
                     setPromoError("");
+                    setPromoSuccess("");
                   }}
                   placeholder="Enter promo code"
-                  className="flex-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] transition-all uppercase"
-                />
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleApplyPromo}
-                  disabled={isApplyingPromo}
-                  className={`w-full sm:w-auto px-6 py-3 rounded-lg font-semibold transition-all ${
-                    isApplyingPromo
-                      ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black shadow-lg"
+                  disabled={!!appliedPromoDetails}
+                  className={`flex-1 px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#E6C2A1] transition-all uppercase ${
+                    appliedPromoDetails ? 'opacity-60 cursor-not-allowed' : ''
                   }`}
-                >
-                  {isApplyingPromo ? (
-                    <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                  ) : (
-                    "Apply"
-                  )}
-                </motion.button>
+                />
+                {appliedPromoDetails ? (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleRemovePromo}
+                    className="w-full sm:w-auto px-6 py-3 rounded-lg font-semibold transition-all bg-red-600 hover:bg-red-700 text-white shadow-lg flex items-center justify-center gap-2"
+                  >
+                    <MdClose className="w-5 h-5" />
+                    Remove
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleApplyPromo}
+                    disabled={isApplyingPromo}
+                    className={`w-full sm:w-auto px-6 py-3 rounded-lg font-semibold transition-all ${
+                      isApplyingPromo
+                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black shadow-lg"
+                    }`}
+                  >
+                    {isApplyingPromo ? (
+                      <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    ) : (
+                      "Apply"
+                    )}
+                  </motion.button>
+                )}
               </div>
 
               {promoError && (
@@ -912,7 +1021,7 @@ export default function Checkout() {
                 </motion.p>
               )}
 
-              {promoApplied && (
+              {promoSuccess && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -920,23 +1029,12 @@ export default function Checkout() {
                 >
                   <CheckCircle className="w-5 h-5 text-emerald-400" />
                   <span className="text-emerald-400 text-sm font-semibold">
-                    Promo code applied successfully!
+                    {promoSuccess}
                   </span>
                 </motion.div>
               )}
 
-              <div className="bg-gradient-to-r from-[#E6C2A1]/10 to-transparent border-l-4 border-[#E6C2A1] rounded-lg p-4">
-                <p className="text-sm text-gray-300 mb-2">
-                  <span className="font-semibold text-[#E6C2A1]">
-                    Try these codes:
-                  </span>
-                </p>
-                <div className="space-y-1 text-xs text-gray-400">
-                  <p>• SAVE10 - Get 10% off</p>
-                  <p>• SAVE15 - Get 15% off</p>
-                  <p>• FIRSTORDER - Get 25% off your first order</p>
-                </div>
-              </div>
+              <AvailablePromoCodes uploadedImages={uploadedImages} />
             </div>
 
             {/* Payment Method Section */}
@@ -1109,7 +1207,14 @@ export default function Checkout() {
                     className="flex justify-between text-emerald-400"
                   >
                     <span className="flex items-center gap-1">
-                      Discount
+                      {appliedPromoDetails?.discountType === 'free_prints' ? (
+                        <>
+                          <Gift className="w-4 h-4" />
+                          Free Prints ({appliedPromoDetails?.freeQuantity})
+                        </>
+                      ) : (
+                        'Discount'
+                      )}
                       {promoCodeInput && (
                         <span className="text-xs bg-emerald-500/20 px-2 py-0.5 rounded">
                           {promoCodeInput}
