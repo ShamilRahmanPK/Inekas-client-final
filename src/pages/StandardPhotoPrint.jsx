@@ -12,12 +12,12 @@ import {
   Heart,
 } from "lucide-react";
 
-import img35x5 from "../assets/3.5x5-prev.webp";
 import img4x6 from "../assets/4x4-prev-f.jpeg";
 import img5x7 from "../assets/5x7-prev-f.jpeg";
 import img8x10 from "../assets/8x10-prev-f.jpeg";
-import img4x4 from "../assets/4x4-prev.jpg";
-import img8x8 from "../assets/8x8-prev.webp";
+import img16x21 from "../assets/16x21-prev-f.jpeg";
+import img20x25 from "../assets/20x25-prev-f.jpeg";
+
 import Navbar from "../components/Navbar";
 
 export default function StandardPhotoPrint() {
@@ -27,26 +27,26 @@ export default function StandardPhotoPrint() {
   const [selectedPaper, setSelectedPaper] = useState("Luster");
   const [promoCode, setPromoCode] = useState("");
 
-  const sizes = ["10x15", "13x18", "15x21", "20x25", "20x30"];
+  const sizes = ["10x15", "13x18", "16x21", "20x25", "20x30"];
   const papers = ["Luster", "Glossy"];
 
   const imageMap = {
     "10x15": img4x6,
     "13x18": img5x7,
-    "15x21": img5x7,
-    "20x25": img8x10,
+    "16x21": img16x21,
+    "20x25": img20x25,
     "20x30": img8x10,
   };
 
   const previewImage = imageMap[selectedSize];
 
   const getPricePerImage = () => {
-    let price = 5;
-    if (selectedSize === "10x15") price = 5;
-    if (selectedSize === "13x18") price = 8;
-    if (selectedSize === "15x21") price = 10;
-    if (selectedSize === "20x25") price = 15;
-    if (selectedSize === "20x30") price = 18;
+    let price = 1.25;
+    if (selectedSize === "10x15") price = 1.25;
+    if (selectedSize === "13x18") price = 2.50;
+    if (selectedSize === "16x21") price = 3.25;
+    if (selectedSize === "20x25") price = 5;
+    if (selectedSize === "20x30") price = 7;
 
     if (selectedPaper === "Glossy") price += 2;
 

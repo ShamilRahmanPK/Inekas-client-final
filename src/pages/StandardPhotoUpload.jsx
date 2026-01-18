@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -10,7 +10,8 @@ import {
   MdRotate90DegreesCw,
   MdUndo,
 } from "react-icons/md";
-import Cropper from "react-easy-crop";
+import { Cropper } from "react-advanced-cropper";
+import "react-advanced-cropper/dist/style.css";
 import Navbar from "../components/Navbar";
 import InfoModal from "../components/InfoModal";
 
@@ -18,9 +19,12 @@ export default function StandardPhotoUpload() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const initialSize = location.state?.size || "4x6";
+  const sizes = ["10x15", "13x18", "16x21", "20x25", "20x30"];
+  
+  const initialSize = location.state?.size || "10x15";
   const initialPaper = location.state?.paperType || "Luster";
   const initialPromo = location.state?.promoCode || "";
+  const existingImages = location.state?.existingImages || [];
 
   const [uploadedImages, setUploadedImages] = useState([]);
   const [defaultSize, setDefaultSize] = useState(initialSize);
@@ -29,31 +33,80 @@ export default function StandardPhotoUpload() {
   const [isDragging, setIsDragging] = useState(false);
   const [promoApplied, setPromoApplied] = useState(false);
   const [editingImage, setEditingImage] = useState(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [rotation, setRotation] = useState(0);
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [cropFrameFlipped, setCropFrameFlipped] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [infoMessage, setInfoMessage] = useState("");
   const [infoType, setInfoType] = useState("info");
+  const [imageOrientation, setImageOrientation] = useState(null);
+  const cropperRef = useRef(null);
 
-  const sizes = ["10x15", "13x18", "15x21", "20x25", "20x30"];
+  // Load existing images when coming back from checkout
+  useEffect(() => {
+    if (existingImages.length > 0) {
+      const restoredImages = existingImages.map((img) => ({
+        id: img.id || Date.now() + Math.random(),
+        file: img.file,
+        croppedFile: img.croppedFile || null,
+        originalPreview: img.file ? URL.createObjectURL(img.file) : img.originalPreview,
+        croppedPreview: img.croppedFile ? URL.createObjectURL(img.croppedFile) : img.croppedPreview,
+        size: img.size,
+        paper: img.paper,
+        quantity: img.quantity,
+        customQuantity: false,
+        cropped: img.cropped || false,
+        cropData: img.cropData || null,
+      }));
+      setUploadedImages(restoredImages);
+    }
+  }, []);
   const papers = ["Luster", "Glossy"];
   const quantities = [1, 5, 10, 20, 30, 40, 50, "Custom"];
 
-  // Crop aspect ratio
-  const getAspectRatio = (size) => {
+  // Detect image orientation
+  const detectImageOrientation = (imageSrc) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const isPortrait = img.height > img.width;
+        const isLandscape = img.width > img.height;
+        resolve({ isPortrait, isLandscape, width: img.width, height: img.height });
+      };
+      img.src = imageSrc;
+    });
+  };
+
+  // Get aspect ratio based on size and orientation
+  const getAspectRatio = (size, orientation) => {
     const [width, height] = size.split("x").map(Number);
-    return width / height;
+    
+    if (!orientation) {
+      return cropFrameFlipped ? height / width : width / height;
+    }
+    
+    // Always match the crop frame to the image's natural orientation
+    let ratio;
+    if (orientation.isLandscape) {
+      // For landscape images, ensure aspect ratio is > 1 (width > height)
+      ratio = Math.max(width / height, height / width);
+    } else if (orientation.isPortrait) {
+      // For portrait images, ensure aspect ratio is < 1 (height > width)
+      ratio = Math.min(width / height, height / width);
+    } else {
+      ratio = width / height;
+    }
+    
+    // Flip the aspect ratio when crop frame is rotated 90° or 270°
+    return cropFrameFlipped ? 1 / ratio : ratio;
   };
 
   const getPricePerImage = (size, paper) => {
-    let price = 5;
-    if (size === "10x15") price = 5;
-    if (size === "13x18") price = 8;
-    if (size === "15x21") price = 10;
-    if (size === "20x25") price = 15;
-    if (size === "20x30") price = 18;
+    let price = 1.25;
+    if (size === "10x15") price = 1.25;
+    if (size === "13x18") price = 2.50;
+    if (size === "16x21") price = 3.25;
+    if (size === "20x25") price = 5;
+    if (size === "20x30") price = 7;
     if (paper === "Glossy") price += 2;
     return price;
   };
@@ -142,94 +195,74 @@ export default function StandardPhotoUpload() {
     );
   };
 
-  const openEditor = (image) => {
+  const openEditor = async (image) => {
     setEditingImage(image);
-    setCrop({ x: 0, y: 0 });
-    setRotation(image.cropData?.rotation || 0);
-    setZoom(image.cropData?.zoom || 1);
-    setCroppedAreaPixels(null);
+    const savedRotation = image.cropData?.rotation || 0;
+    setRotation(savedRotation);
+    setCropFrameFlipped(savedRotation === 90 || savedRotation === 270);
+    
+    // Detect image orientation
+    const orientation = await detectImageOrientation(image.originalPreview);
+    setImageOrientation(orientation);
   };
 
   const closeEditor = () => {
     setEditingImage(null);
-    setCrop({ x: 0, y: 0 });
     setRotation(0);
-    setZoom(1);
-    setCroppedAreaPixels(null);
+    setCropFrameFlipped(false);
+    setImageOrientation(null);
   };
 
-  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
-
-  const createImage = (url) =>
-    new Promise((resolve, reject) => {
-      const image = new Image();
-      image.addEventListener("load", () => resolve(image));
-      image.addEventListener("error", (error) => reject(error));
-      image.setAttribute("crossOrigin", "anonymous");
-      image.src = url;
+  const handleRotate = () => {
+    setRotation((r) => {
+      const newRotation = (r + 90) % 360;
+      // Flip the crop frame aspect ratio when rotation is 90° or 270°
+      setCropFrameFlipped(newRotation === 90 || newRotation === 270);
+      return newRotation;
     });
+  };
 
-  const getCroppedImg = async (imageSrc, pixelCrop, rotation = 0) => {
-    const image = await createImage(imageSrc);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
 
-    const rotRad = (rotation * Math.PI) / 180;
-    const { width: imgWidth, height: imgHeight } = image;
-    const sin = Math.abs(Math.sin(rotRad));
-    const cos = Math.abs(Math.cos(rotRad));
-    const rotatedWidth = imgWidth * cos + imgHeight * sin;
-    const rotatedHeight = imgWidth * sin + imgHeight * cos;
 
-    canvas.width = pixelCrop.width;
-    canvas.height = pixelCrop.height;
+  const getCroppedImg = async () => {
+    if (!cropperRef.current) return null;
 
-    const offscreenCanvas = document.createElement("canvas");
-    const offscreenCtx = offscreenCanvas.getContext("2d");
-    offscreenCanvas.width = rotatedWidth;
-    offscreenCanvas.height = rotatedHeight;
+    // Get canvas with maximum quality settings
+    const canvas = cropperRef.current.getCanvas({
+      maxWidth: 4096,
+      maxHeight: 4096,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high',
+    });
+    
+    if (!canvas) return null;
 
-    offscreenCtx.translate(rotatedWidth / 2, rotatedHeight / 2);
-    offscreenCtx.rotate(rotRad);
-    offscreenCtx.drawImage(image, -imgWidth / 2, -imgHeight / 2);
-
-    ctx.drawImage(
-      offscreenCanvas,
-      pixelCrop.x,
-      pixelCrop.y,
-      pixelCrop.width,
-      pixelCrop.height,
-      0,
-      0,
-      pixelCrop.width,
-      pixelCrop.height
-    );
-
-    // Convert canvas to File
     return new Promise((resolve) => {
+      // Use PNG for lossless quality, perfect for printing
       canvas.toBlob(
         (blob) => {
-          const file = new File([blob], editingImage.file.name, {
-            type: "image/jpeg",
+          // Keep original filename but change extension to png
+          const originalName = editingImage.file.name;
+          const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
+          const file = new File([blob], `${nameWithoutExt}.png`, {
+            type: "image/png",
           });
           resolve(file);
         },
-        "image/jpeg",
-        0.95
+        "image/png"  // PNG for maximum quality
       );
     });
   };
 
   const applyCrop = async () => {
-    if (editingImage && croppedAreaPixels) {
+    if (editingImage) {
       try {
-        const croppedFile = await getCroppedImg(
-          editingImage.originalPreview,
-          croppedAreaPixels,
-          rotation
-        );
+        const croppedFile = await getCroppedImg();
+        
+        if (!croppedFile) {
+          console.error("Failed to get cropped image");
+          return;
+        }
 
         const croppedPreview = URL.createObjectURL(croppedFile);
 
@@ -241,7 +274,7 @@ export default function StandardPhotoUpload() {
                   croppedFile,
                   croppedPreview,
                   cropped: true,
-                  cropData: { crop, zoom, rotation, croppedAreaPixels },
+                  cropData: { rotation },
                 }
               : img
           )
@@ -264,14 +297,6 @@ export default function StandardPhotoUpload() {
   const handleNext = () => {
     if (uploadedImages.length === 0) {
       setInfoMessage("Please upload at least one photo before proceeding.");
-      setInfoType("warning");
-      setShowInfoModal(true);
-      return;
-    }
-
-    const allCropped = uploadedImages.every((img) => img.cropped);
-    if (!allCropped) {
-      setInfoMessage("Please crop all images before proceeding to checkout.");
       setInfoType("warning");
       setShowInfoModal(true);
       return;
@@ -344,14 +369,7 @@ export default function StandardPhotoUpload() {
             <li className="flex items-start gap-2">
               <span className="text-[#E6C2A1] mt-1">•</span>
               <span>
-                Click on an image to crop and rotate it before proceeding.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#E6C2A1] mt-1">•</span>
-              <span>
-                <strong className="text-[#E6C2A1]">Note:</strong> The "NEXT"
-                button will be enabled only after all images have been cropped.
+                Click on an image to crop and rotate it (optional).
               </span>
             </li>
             <li className="flex items-start gap-2">
@@ -759,13 +777,11 @@ export default function StandardPhotoUpload() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={closeEditor}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-lg shadow-2xl max-w-4xl w-full flex flex-col overflow-hidden"
             >
               <div className="flex justify-between">
@@ -780,41 +796,87 @@ export default function StandardPhotoUpload() {
               {/* Cropper Area */}
               <div className="relative bg-black" style={{ height: "70vh" }}>
                 <Cropper
-                  image={editingImage.originalPreview}
-                  crop={crop}
-                  zoom={zoom}
-                  rotation={rotation}
-                  aspect={getAspectRatio(editingImage.size)}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onRotationChange={setRotation}
-                  onCropComplete={onCropComplete}
-                  objectFit="contain"
-                  restrictPosition={false}
-                  showGrid={true}
-                  style={{
-                    containerStyle: {
-                      backgroundColor: "#000",
-                      height: "100%",
+                  ref={cropperRef}
+                  src={editingImage.originalPreview}
+                  className="advanced-cropper"
+                  stencilProps={{
+                    aspectRatio: getAspectRatio(editingImage.size, imageOrientation),
+                    grid: true,
+                    movable: true,
+                    resizable: true,
+                    handlers: {
+                      eastNorth: true,
+                      north: false,
+                      westNorth: true,
+                      west: false,
+                      westSouth: true,
+                      south: false,
+                      eastSouth: true,
+                      east: false,
                     },
-                    cropAreaStyle: {
-                      border: "2px solid #fff",
-                      color: "rgba(255, 255, 255, 0.3)",
-                    },
-                    mediaStyle: {
-                      height: "100%",
-                      width: "100%",
-                      objectFit: "contain",
+                    lines: {
+                      north: false,
+                      west: false,
+                      south: false,
+                      east: false,
                     },
                   }}
+                  imageRestriction="stencil"
+                  transformImage={{
+                    rotate: rotation,
+                  }}
                 />
+                <style>{`
+                  .advanced-cropper {
+                    width: 100%;
+                    height: 100%;
+                    background: #000;
+                  }
+                  
+                  .advanced-cropper .react-advanced-cropper-stencil {
+                    border: 2px solid #ffffff;
+                  }
+                  
+                  .advanced-cropper .react-advanced-cropper-handler {
+                    width: 16px;
+                    height: 16px;
+                    background: #ffffff;
+                    border: 2px solid #000000;
+                    border-radius: 50%;
+                    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+                    transition: all 0.2s;
+                  }
+                  
+                  .advanced-cropper .react-advanced-cropper-handler:hover {
+                    width: 20px;
+                    height: 20px;
+                    background: #E6C2A1;
+                    box-shadow: 0 0 12px rgba(230, 194, 161, 0.8);
+                  }
+                  
+                  .advanced-cropper .react-advanced-cropper-line {
+                    border-color: #ffffff;
+                  }
+                  
+                  .advanced-cropper .react-advanced-cropper-background {
+                    background: rgba(0, 0, 0, 0.6);
+                  }
+                  
+                  .advanced-cropper .react-advanced-cropper-foreground {
+                    background: transparent;
+                  }
+                  
+                  .advanced-cropper .react-advanced-cropper-grid-line {
+                    border-color: rgba(255, 255, 255, 0.3);
+                  }
+                `}</style>
               </div>
 
               {/* Bottom Controls */}
               <div className="bg-white p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 border-t border-gray-200">
                 {/* Rotate Button */}
                 <button
-                  onClick={() => setRotation((r) => (r + 90) % 360)}
+                  onClick={handleRotate}
                   className="w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-2.5 bg-black hover:bg-gray-800 text-white rounded-lg font-medium text-sm sm:text-base transition-colors flex items-center justify-center gap-2"
                 >
                   <MdRotate90DegreesCw className="w-5 h-5" />
@@ -867,15 +929,11 @@ export default function StandardPhotoUpload() {
             {/* NEXT Button */}
             <button
               onClick={handleNext}
-              disabled={
-                uploadedImages.length === 0 ||
-                !uploadedImages.every((img) => img.cropped)
-              }
+              disabled={uploadedImages.length === 0}
               className={`
           mt-2 sm:mt-0 px-6 sm:px-8 py-2 sm:py-3 rounded-lg sm:rounded-xl font-bold text-sm sm:text-lg transition-all
           ${
-            uploadedImages.length === 0 ||
-            !uploadedImages.every((img) => img.cropped)
+            uploadedImages.length === 0
               ? "bg-gray-600 text-gray-400 cursor-not-allowed"
               : "bg-gradient-to-r from-[#E6C2A1] to-[#d4ac88] hover:from-[#d4ac88] hover:to-[#E6C2A1] text-black shadow-xl shadow-[#E6C2A1]/30"
           }

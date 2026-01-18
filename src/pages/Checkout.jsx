@@ -11,6 +11,9 @@ import {
   Truck,
   Package,
   AlertCircle,
+  Plus,
+  Minus,
+  Upload,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import StripePayment from "../components/StripePayment";
@@ -24,8 +27,8 @@ export default function Checkout() {
   const location = useLocation();
 
   // Get uploaded images & order info from navigation state
-  const uploadedImages = location.state?.uploadedImages || [];
-  const totals = location.state?.totals || {
+  const [uploadedImages, setUploadedImages] = useState(location.state?.uploadedImages || []);
+  const initialTotals = location.state?.totals || {
     subtotal: 0,
     deliveryCharge: 29,
     discount: 0,
@@ -53,7 +56,7 @@ export default function Checkout() {
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const [promoApplied, setPromoApplied] = useState(!!promoCode);
   const [promoError, setPromoError] = useState("");
-  const [currentTotals, setCurrentTotals] = useState(totals);
+  const [currentTotals, setCurrentTotals] = useState(initialTotals);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -388,15 +391,55 @@ export default function Checkout() {
   // };
 
   const getPricePerImage = (size, paper) => {
-    let price = 5;
-    if (size === "10x15") price = 5;
-    else if (size === "13x18") price = 8;
-    else if (size === "15x21") price = 10;
-    else if (size === "20x25") price = 15;
-    else if (size === "20x30") price = 18;
+    let price = 1.25;
+    if (size === "10x15") price = 1.25;
+    else if (size === "13x18") price = 2.50;
+    else if (size === "16x21") price = 3.25;
+    else if (size === "20x25") price = 5;
+    else if (size === "20x30") price = 7;
 
     if (paper === "Glossy") price += 2;
     return price;
+  };
+
+  // Recalculate totals when quantities change
+  const recalculateTotals = (images) => {
+    const subtotal = images.reduce((total, img) => {
+      return total + getPricePerImage(img.size, img.paper) * img.quantity;
+    }, 0);
+    const deliveryCharge = 29;
+    const discount = promoApplied ? subtotal * 0.1 : 0;
+    const newTotals = {
+      subtotal,
+      deliveryCharge,
+      discount,
+      total: subtotal + deliveryCharge - discount,
+    };
+    setCurrentTotals(newTotals);
+    return newTotals;
+  };
+
+  // Update quantity for a specific image
+  const updateQuantity = (index, delta) => {
+    setUploadedImages((prevImages) => {
+      const newImages = [...prevImages];
+      const newQuantity = Math.max(1, newImages[index].quantity + delta);
+      newImages[index] = { ...newImages[index], quantity: newQuantity };
+      recalculateTotals(newImages);
+      return newImages;
+    });
+  };
+
+  // Navigate back to upload page with existing data
+  const handleAddMorePhotos = () => {
+    navigate("/image/upload", {
+      state: {
+        existingImages: uploadedImages,
+        promoCode: promoCodeInput,
+        size: uploadedImages[0]?.size || "10x15",
+        paperType: uploadedImages[0]?.paper || "Luster",
+      },
+    });
   };
 
   // Handle success modal close
@@ -459,34 +502,6 @@ export default function Checkout() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="
-    flex items-center gap-2
-    bg-transparent
-    hover:bg-transparent
-    active:bg-transparent
-    focus:bg-transparent
-    focus-visible:bg-transparent
-    focus:outline-none
-    focus:ring-0
-    border-0
-    shadow-none
-    appearance-none
-    text-gray-400
-    hover:text-[#E6C2A1]
-    transition-colors
-    mb-4
-  "
-            style={{
-              backgroundColor: "transparent",
-              boxShadow: "none",
-            }}
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Back to Upload
-          </button>
 
           <h1 className="text-4xl font-bold text-[#E6C2A1] mb-2">Checkout</h1>
           <p className="text-gray-400">
@@ -533,9 +548,6 @@ export default function Checkout() {
                         alt={`Order item ${index + 1}`}
                         className="w-full h-full object-cover rounded-lg"
                       />
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#E6C2A1] rounded-full flex items-center justify-center text-black text-xs font-bold">
-                        {image.quantity}
-                      </div>
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -551,10 +563,27 @@ export default function Checkout() {
                           Paper:{" "}
                           <span className="text-white">{image.paper}</span>
                         </p>
-                        <p>
-                          Quantity:{" "}
-                          <span className="text-white">{image.quantity}</span>
-                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span>Quantity:</span>
+                          <div className="flex items-center gap-2 bg-white/10 rounded-lg p-1">
+                            <button
+                              onClick={() => updateQuantity(index, -1)}
+                              disabled={image.quantity <= 1}
+                              className="w-6 h-6 bg-white/20 hover:bg-[#E6C2A1] hover:text-black rounded flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/20 disabled:hover:text-white"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="text-white font-semibold min-w-[2rem] text-center">
+                              {image.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(index, 1)}
+                              className="w-6 h-6 bg-white/20 hover:bg-[#E6C2A1] hover:text-black rounded flex items-center justify-center transition-colors"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -570,6 +599,18 @@ export default function Checkout() {
                     </div>
                   </motion.div>
                 ))}
+                
+                {/* Add More Photos Button */}
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: imagesWithPreview.length * 0.1 }}
+                  onClick={handleAddMorePhotos}
+                  className="w-full p-4 bg-white/5 hover:bg-white/10 rounded-lg border-2 border-dashed border-[#E6C2A1]/30 hover:border-[#E6C2A1] transition-all flex items-center justify-center gap-2 text-[#E6C2A1] font-semibold"
+                >
+                  <Upload className="w-5 h-5" />
+                  Add More Photos
+                </motion.button>
               </div>
             </motion.div>
 

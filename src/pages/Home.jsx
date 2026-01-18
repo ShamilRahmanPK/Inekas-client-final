@@ -202,15 +202,11 @@ function Home() {
                 <motion.button
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    const element = document.getElementById("packages");
-                    if (element) {
-                      element.scrollIntoView({ behavior: "smooth" });
-                    }
+                  onClick={() => {navigate("/standard-photo-print")
                   }}
                   className="flex-1 flex items-center justify-center border-2 border-[#E6C2A1] text-[#E6C2A1] font-semibold py-3.5 rounded-lg hover:bg-[#E6C2A1] hover:text-black transition-all"
                 >
-                  View Packages
+                  Standard Photo Print
                 </motion.button>
                 <div className="flex-1 flex"></div>
               </div>
